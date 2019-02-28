@@ -1,0 +1,14 @@
+LICENSE
+MANIFEST.in
+README
+README.rst
+lgpl.txt
+setup.cfg
+setup.py
+nose_cover3.egg-info/PKG-INFO
+nose_cover3.egg-info/SOURCES.txt
+nose_cover3.egg-info/dependency_links.txt
+nose_cover3.egg-info/entry_points.txt
+nose_cover3.egg-info/not-zip-safe
+nose_cover3.egg-info/top_level.txt
+nosecover3/__init__.py

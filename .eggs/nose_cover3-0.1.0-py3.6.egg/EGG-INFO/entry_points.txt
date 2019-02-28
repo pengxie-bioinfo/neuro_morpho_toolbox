@@ -1,0 +1,3 @@
+[nose.plugins]
+cover3 = nosecover3:Coverage3
+
