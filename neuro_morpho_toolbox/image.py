@@ -1,4 +1,5 @@
 import SimpleITK as sitk
+import numpy as np
 
 class image:
     def __init__(self, file):
