@@ -43,7 +43,7 @@ class brain_structure:
                 if not df_isnull.iloc[j, i]:
                     cur_region = df.iloc[j, i]
                     cur_level = level.loc[df.index[j], 'level']
-                    print(j, cur_region, cur_level)
+                    # print(j, cur_region, cur_level)
                 elif (not cur_region is None) & (cur_level < level.loc[df.index[j], 'level']):
                     df_fill.iloc[j, i] = cur_region
 
@@ -65,6 +65,18 @@ class brain_structure:
                                      )
         self.selected_regions = brain_levels.index.tolist()
         return
+
+    def name_to_id(self, region_name):
+        # region_name can be either abbrevation (checked first) or description
+        tp = self.level[self.level.Abbrevation == region_name]
+        if len(tp) != 0:
+            return tp.index[0]
+        tp = self.level[self.level.Description == region_name]
+        if len(tp) != 0:
+            return tp.index[0]
+        print("Cannot find any regions named %s." % region_name)
+        return -1
+
 
 
 

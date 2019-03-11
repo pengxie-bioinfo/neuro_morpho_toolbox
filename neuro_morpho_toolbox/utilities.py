@@ -1,6 +1,8 @@
 import numpy as np
 import pandas as pd
 
+import os
+
 def cart2pol(x, y):
     rho = np.sqrt(x**2 + y**2)
     phi = np.arctan2(y, x)
@@ -25,3 +27,19 @@ def pol2cart_3d(rho, theta, phi):
     res = np.append(x, np.append(y, z, axis=1), axis=1)
     return res
 
+def get_sample_list(path, suffix):
+
+    ct = 0
+    files = []
+    for file in sorted(os.listdir(path)):
+        if file.endswith(suffix):
+            ct += 1
+            files.append(file)
+    np.random.shuffle(files)
+    return files
+
+def save_excel(df, filename, sheet_name="sheet1"):
+    writer = pd.ExcelWriter(filename)
+    df.to_excel(writer, sheet_name)
+    writer.save()
+    return

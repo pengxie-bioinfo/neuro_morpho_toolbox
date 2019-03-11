@@ -6,7 +6,10 @@ setup(name='neuro_morpho_toolbox',
       author='Peng Xie',
       license='Allen Institute',
       packages=['neuro_morpho_toolbox'],
-      install_requires=['numpy', 'pandas', 'SimpleITK', 'matplotlib'],
+      install_requires=['numpy', 'sklearn', 'scipy', 'pandas', 'SimpleITK',
+                        'matplotlib', 'python-igraph', 'seaborn',
+                        'colorlover', 'plotly', 'ipywidgets'
+                        ],
       test_suite='nose.collector',
       tests_require=['nose', 'nose-cover3']
       )
