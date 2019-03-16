@@ -9,7 +9,7 @@ import SimpleITK as sitk
 from .swc import swc
 from .image import image
 from .brain_structure import brain_structure
-from .neuron_features import features, projection_features
+from .neuron_features import features, projection_features, soma_features
 from .utilities import *
 from .ml_utilities import *
 

@@ -1,7 +1,8 @@
+import neuro_morpho_toolbox as nmt
+
 import numpy as np
 import pandas as pd
 import os
-import neuro_morpho_toolbox as nmt
 
 class features:
 
@@ -9,7 +10,6 @@ class features:
         assert type(feature_set_name) == str, "'feature_set_name' must be a python string"
         self.feature_set_name = feature_set_name
         self.raw_data = pd.DataFrame()
-        self.scaled_data = pd.DataFrame()
         self.metadata = pd.DataFrame()
         return
 
@@ -25,13 +25,6 @@ class features:
             for i in remove_cells:
                 print(i)
             self.raw_data = self.raw_data.drop(remove_cells, axis=0)
-        return
-
-    def normalize(self, log=True):
-        scaled_data = np.array(self.raw_data) / np.sum(self.raw_data, axis=1).values.reshape(-1,1) * 100000
-        if log:
-            scaled_data = np.log(scaled_data+100)
-        self.scaled_data = pd.DataFrame(scaled_data, index=self.raw_data.index, columns=self.raw_data.columns)
         return
 
     def neuron_list(self):
@@ -100,6 +93,7 @@ def initiate_df_dict():
 class projection_features(features):
     def __init__(self):
         features.__init__(self, "Projection")
+        self.scaled_data = pd.DataFrame()
         return
 
     def load_csv_from_path(self, path):
@@ -127,7 +121,7 @@ class projection_features(features):
             for i in [1,2]:
                 hemi_dict[i] = add_new_record(hemi_dict[i], df, i, cell_name)
 
-        ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
+        ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["soma"].columns.tolist()]
         contra_col = ["contra_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
         axon_location = pd.DataFrame(index=hemi_dict[1]["axon"].index, columns=ipsi_col + contra_col, dtype='float32')
         # Flip the matrix if hemisphere == 2
@@ -143,6 +137,56 @@ class projection_features(features):
         self.add_raw_data(axon_location)
         return
 
+    def normalize(self, log=True):
+        scaled_data = np.array(self.raw_data) / np.sum(self.raw_data, axis=1).values.reshape(-1,1) * 100000
+        if log:
+            scaled_data = np.log(scaled_data+100)
+        self.scaled_data = pd.DataFrame(scaled_data, index=self.raw_data.index, columns=self.raw_data.columns)
+        return
 
+class soma_features(features):
+    def __init__(self):
+        features.__init__(self, "Soma")
+        self.df = pd.DataFrame()
+        return
 
+    def load_csv_from_path(self, path):
+        self.csv_path = path
+        self.metadata = pd.DataFrame(columns=['File_name'])
+        self.raw_data = pd.DataFrame(columns=["x", "y", "z"])
+        self.region = pd.DataFrame(columns=['Hemisphere', 'Region'])
+        for input_table in sorted(os.listdir(path)):
+            cell_name = input_table.replace(".csv", "").replace(".swc", "").replace(".eswc", "")
+            # 1. read a table
+            if not input_table.endswith(".csv"):
+                continue
+            input_table = os.path.join(path, input_table)
+            df = pd.read_csv(input_table)
+            df.index = [cell_name]
 
+            # 1. Feature (XYZ location) table
+            self.raw_data = pd.concat([self.raw_data, df[["x", "y", "z"]]])
+            scale_data = [int(df["x"] / nmt.annotation.space["x"]),
+                          int(df["y"] / nmt.annotation.space["y"]),
+                          int(df["z"] / nmt.annotation.space["z"])
+                          ]
+
+            # 2. Metadata
+            cur_metadata = pd.DataFrame({'File_name':os.path.join(path, input_table)},
+                                        index=[cell_name])
+            self.metadata = pd.concat([self.metadata, cur_metadata])
+
+            # 3. Region_table
+            if df.z[0] < (nmt.annotation.micron_size['z']/2):
+                cur_hemi = 1
+            else:
+                cur_hemi = 2
+            structure_id = nmt.annotation.array[scale_data[0], scale_data[1], scale_data[2]]
+            if structure_id in nmt.bs.level.index.tolist():
+                cur_region = nmt.bs.level.loc[structure_id, "Abbrevation"]
+            else:
+                cur_region = "unknown"
+            cur_region = pd.DataFrame({"Hemisphere":[cur_hemi], "Region":[cur_region]}, index=[cell_name])
+            self.region = pd.concat([self.region, cur_region])
+
+        return

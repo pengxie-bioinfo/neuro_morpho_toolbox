@@ -9,7 +9,7 @@ import pickle
 import neuro_morpho_toolbox as nmt
 
 
-# read swc
+# 1. read swc
 swc_file = "/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/Janelia_1000/All/AA0001.swc"
 neuron = nmt.swc(swc_file, zyx=False)
 neuron.flip("z", axis_max=nmt.annotation.micron_size['z'])
@@ -20,6 +20,8 @@ swc_file = "/local1/Documents/CLA/data/CCF/mapped/swc/Whole/236174_03229_03312_X
 neuron = nmt.swc(swc_file, zyx=False)
 neuron.scale([1/10, 1/10, 1/10])
 neuron.save("/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/temp_swc/236174_03229_03312_X11951_Y11316_QCed.swc")
+
+#
 
 
 ########################################################################
