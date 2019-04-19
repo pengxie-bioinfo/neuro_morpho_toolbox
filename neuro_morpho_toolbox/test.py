@@ -32,7 +32,7 @@ swc_path = "/local1/Documents/CLA/data/CCF/mapped/swc/Whole/"
 swc_files = nmt.get_sample_list(swc_path, "swc")
 df_list = []
 ref_df_list = []
-for swc_file in swc_files:
+for swc_file in sorted(swc_files)[:5]:
     print(len(df_list)+1, swc_file)
 
     # 1.1 results of current pipeline
@@ -97,8 +97,8 @@ plt.text(np.dot(np.array(plt.xlim()), np.array([0.90,0.10])),
 #########################################################################
 # Validation 2: comparing with Janelia 1000 reconstruction
 #########################################################################
-# swc_path = "/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/Janelia_1000/L5PT/"
-swc_path = "/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/Janelia_1000/L6CT/"
+swc_path = "/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/Janelia_1000/L5PT/"
+# swc_path = "/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/Janelia_1000/L6CT/"
 swc_files = nmt.get_sample_list(swc_path, "swc")
 
 TH_sum = []

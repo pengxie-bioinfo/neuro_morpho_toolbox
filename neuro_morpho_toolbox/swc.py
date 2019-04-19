@@ -19,9 +19,9 @@ class swc:
                     break
         f.close()
         if zyx:
-            names = ["", "type", "z", "y", "x", "r", "parent"]
+            names = ["##n", "type", "z", "y", "x", "r", "parent"]
         else:
-            names = ["", "type", "x", "y", "z", "r", "parent"]
+            names = ["##n", "type", "x", "y", "z", "r", "parent"]
         swc = pd.read_csv(self.file, index_col=0, skiprows=n_skip, sep=" ",
                           usecols=[0, 1, 2, 3, 4, 5, 6],
                           names=names

@@ -67,10 +67,17 @@ def get_hemisphere(df):
             return np.NAN
         else:
             hemi_id = hemi_df.iloc[0]
-    else:
+            return hemi_id
+
+    # Find hemisphere by dendrite.
+    df["dendrite"] = np.sum(df[["(basal) dendrite", "apical dendrite"]], axis=1)
+    if np.sum(df["dendrite"]) == 0:
         print("no soma found")
         hemi_id = np.NAN
-    # Find hemisphere by dendrite: To be implemented.
+    if np.sum(df[df["hemisphere_id"] == 1]["dendrite"]) > np.sum(df[df["hemisphere_id"] == 2]["dendrite"]):
+        hemi_id = 1
+    else:
+        hemi_id = 2
     return hemi_id
 
 
