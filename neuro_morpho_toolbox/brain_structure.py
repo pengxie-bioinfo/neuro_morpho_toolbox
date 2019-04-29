@@ -60,8 +60,8 @@ class brain_structure:
 
     def get_selected_regions(self, input_file):
         brain_levels = pd.read_excel(input_file,
-                                     usecols=[1, 3, 2, 5], index_col=0,
-                                     names=['', 'Description', 'Abbrevation', 'level']
+                                     usecols=[1, 2, 3, 5], index_col=0,
+                                     names=['Description', 'Abbrevation', 'level']
                                      )
         self.selected_regions = brain_levels.index.tolist()
         return

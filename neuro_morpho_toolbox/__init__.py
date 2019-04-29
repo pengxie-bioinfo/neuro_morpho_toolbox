@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import os
 
 # Image process
 import SimpleITK as sitk
@@ -15,7 +16,8 @@ from .ml_utilities import *
 
 neurite_types = ['(basal) dendrite', 'apical dendrite', 'axon', 'soma']
 
+package_path = os.path.realpath(__file__).replace("__init__.py", "")
 # Temporary solution
-annotation = image("/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/annotation_10.nrrd")
-bs = brain_structure("/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/Mouse.csv")
-bs.get_selected_regions("/local1/Documents/python/neuro_morpho_toolbox/neuro_morpho_toolbox/data/CCFv3 Summary Structures.xlsx")
+annotation = image(package_path+"data/annotation_10.nrrd")
+bs = brain_structure(package_path+"data/Mouse.csv")
+bs.get_selected_regions(package_path+"data/CCFv3 Summary Structures.xlsx")
