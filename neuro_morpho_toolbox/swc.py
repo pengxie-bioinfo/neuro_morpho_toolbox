@@ -4,7 +4,7 @@ import pandas as pd
 from .utilities import cart2pol_3d
 from .brain_structure import *
 
-class swc:
+class neuron:
     def __init__(self, file, zyx=False):
         self.file = file
         self.name = file.split(".")[0]
@@ -131,6 +131,19 @@ class swc:
             res["x"] = self.swc["x"] * xyz_scales[0]
             res["y"] = self.swc["y"] * xyz_scales[1]
             res["z"] = self.swc["z"] * xyz_scales[2]
+            return res
+
+    def shift(self, xyz_shift, inplace=True):
+        if inplace:
+            self.swc["x"] = self.swc["x"] + xyz_shift[0]
+            self.swc["y"] = self.swc["y"] + xyz_shift[1]
+            self.swc["z"] = self.swc["z"] + xyz_shift[2]
+            return self.swc
+        else:
+            res = self.swc.copy()
+            res["x"] = res["x"] + xyz_shift[0]
+            res["y"] = res["y"] + xyz_shift[1]
+            res["z"] = res["z"] + xyz_shift[2]
             return res
 
     def save(self, file_name):

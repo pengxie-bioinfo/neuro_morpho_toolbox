@@ -7,12 +7,13 @@ import os
 # Image process
 import SimpleITK as sitk
 
-from .swc import swc
+from .swc import neuron
 from .image import image
 from .brain_structure import brain_structure
 from .neuron_features import features, projection_features, soma_features
 from .utilities import *
 from .ml_utilities import *
+from .plot import *
 
 neurite_types = ['(basal) dendrite', 'apical dendrite', 'axon', 'soma']
 
