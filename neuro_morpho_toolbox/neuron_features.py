@@ -128,7 +128,8 @@ class projection_features(features):
             for i in [1,2]:
                 hemi_dict[i] = add_new_record(hemi_dict[i], df, i, cell_name)
 
-        ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["soma"].columns.tolist()]
+        # ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["soma"].columns.tolist()]
+        ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
         contra_col = ["contra_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
         axon_location = pd.DataFrame(index=hemi_dict[1]["axon"].index, columns=ipsi_col + contra_col, dtype='float32')
         # Flip the matrix if hemisphere == 2
