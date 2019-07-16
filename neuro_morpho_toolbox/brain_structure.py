@@ -51,6 +51,11 @@ class brain_structure:
         self.df = df_fill
         self.level = level
         self.selected_regions = self.df.index.tolist()
+        self.dict_to_selected = {}
+        for cur_region in self.selected_regions:
+            child_ids = self.get_all_child_id(cur_region)
+            for i in child_ids:
+                self.dict_to_selected[i] = cur_region
         return
 
     def get_all_child_id(self, structure_id):
@@ -64,6 +69,11 @@ class brain_structure:
                                      names=['', 'Description', 'Abbrevation', 'level']
                                      )
         self.selected_regions = brain_levels.index.tolist()
+        self.dict_to_selected = {}
+        for cur_region in self.selected_regions:
+            child_ids = self.get_all_child_id(cur_region)
+            for i in child_ids:
+                self.dict_to_selected[i] = cur_region
         return
 
     def name_to_id(self, region_name):
@@ -76,6 +86,7 @@ class brain_structure:
             return tp.index[0]
         print("Cannot find any regions named %s." % region_name)
         return -1
+
 
 
 

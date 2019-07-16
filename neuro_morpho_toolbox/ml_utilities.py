@@ -10,6 +10,7 @@ from sklearn.preprocessing import scale
 from sklearn.manifold import Isomap, TSNE
 from sklearn.metrics import silhouette_samples, silhouette_score
 import scipy
+import umap
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
 import seaborn as sns
 import matplotlib.cm as cm
@@ -29,6 +30,25 @@ from timeit import default_timer as timer
 import subprocess
 from pathlib import Path
 from numpy import linalg as LA
+
+
+#######################################################################################
+# Functions for dimension reduction
+
+def PCA_wrapper(X):
+    # TODO
+    return
+
+def UMAP_wrapper(df, n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean'):
+    umap_reducer = umap.UMAP(n_neighbors=n_neighbors,
+                             min_dist=min_dist,
+                             n_components=n_components,
+                             metric=metric)
+    Z = umap_reducer.fit_transform(df)
+    Z_df = pd.DataFrame(Z, index=df.index)
+    return Z_df
+
+#######################################################################################
 
 
 # def df_filter(df):
@@ -170,8 +190,8 @@ def plot_co_cluster(co_cluster, save_prefix=None):
     for lbl in xlbls:
         num += 1
         lbl.set_color(my_color[num])
-    if not save_prefix is None:
-        fig.savefig("../Figure/Dendrogram_AllNeurons_Resample.pdf")
+    # if not save_prefix is None:
+    #     fig.savefig("../Figure/Dendrogram_AllNeurons_Resample.pdf")
 
     # Plot 2: Heatmap
     col_colors = pd.DataFrame({'Type': [celltypes_col[i] for i in CLA.meta_data["Subtype"]]},
@@ -181,7 +201,7 @@ def plot_co_cluster(co_cluster, save_prefix=None):
                        row_colors=col_colors, col_colors=col_colors,
                        row_linkage=Z_sample, col_linkage=Z_sample,
                        annot=False, figsize=(12, 12))
-    if save:
-        g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
+    # if save:
+    #     g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
     return
 

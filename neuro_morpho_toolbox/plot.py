@@ -2,12 +2,14 @@ import numpy as np
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import make_axes_locatable
 from .swc import neuron
 
 import plotly.plotly as py
 import plotly.offline as po
 import plotly.graph_objs as go
 
+import seaborn as sns
 
 # Global variables
 u_views = ['Coronal', 'Horizontal', 'Sagittal']
@@ -138,3 +140,21 @@ def rgb_to_list(rgb_str):
     tp = rgb_str.replace("rgb(","").replace("rgba(","").replace(")","")
     res = [float(i)/255 for i in tp.split(",")]
     return res
+
+def quantitative_scatter(x, y, c, cmap='viridis'):
+    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
+    s = ax.scatter(x, y, c=c, cmap='bwr')
+    # Creating color bar
+    divider = make_axes_locatable(ax)
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    plt.colorbar(s, cax)
+    return fig
+
+def qualitative_scatter(x, y, c):
+
+    df = pd.DataFrame({'x': x, 'y': y, 'Feature': c})
+
+    sns.relplot(x='x', y='y', hue='c', data=df)
+    df = pd.DataFrame({'Dim_1':x, 'Dim_2':y, 'Feature':c})
+    fig = sns.relplot(x='x', y='y', hue='Feature', data=df)
+    return fig

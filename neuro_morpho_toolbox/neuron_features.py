@@ -1,8 +1,9 @@
 import neuro_morpho_toolbox as nmt
-
+from neuro_morpho_toolbox import neuron
 import numpy as np
 import pandas as pd
 import os
+from sklearn.preprocessing import scale
 
 class features:
 
@@ -145,6 +146,33 @@ class projection_features(features):
         self.add_raw_data(axon_location)
         return
 
+    def load_data_from_neuron_dict(self, neuron_dict):
+        assert type(neuron_dict) == dict, "Error: projection_features.load_data_from_neuron_dict(self, neuron_dict).\nneuron_dict provided is NOT a python dictionary."
+        for cur_name, cur_neuron in neuron_dict.items():
+            assert type(cur_neuron) == neuron, "Error: projection_features.load_data_from_neuron_dict(self, neuron_dict).\nvalue of neuron_dict is NOT a nmt.neuron."
+        region_used = nmt.bs.selected_regions
+        columns = ["ipsi_"+nmt.bs.level.loc[i, "Abbrevation"] for i in region_used] + \
+                  ["contra_"+nmt.bs.level.loc[i, "Abbrevation"] for i in region_used]
+
+        df = pd.DataFrame(columns=columns)
+        # TODO: show progress...
+        for cur_name, cur_neuron in list(neuron_dict.items()):
+            cur_df = cur_neuron.get_region_matrix(annotation=nmt.annotation,
+                                                  brain_structure=nmt.bs,
+                                                  region_used=None)
+            # cur_df.index = cur_df.structure_id
+            # print(cur_df.axon)
+            if cur_neuron.hemi == 1:
+                df.loc[cur_name] = cur_df.loc[cur_df["hemisphere_id"] == 1, "axon"].tolist() + \
+                                   cur_df.loc[cur_df["hemisphere_id"] == 2, "axon"].tolist()
+            else:
+                df.loc[cur_name] = cur_df.loc[cur_df["hemisphere_id"] == 2, "axon"].tolist() + \
+                                   cur_df.loc[cur_df["hemisphere_id"] == 1, "axon"].tolist()
+        self.add_raw_data(df)
+        self.normalize(log=True)
+        return
+
+
     def normalize(self, log=True):
         scaled_data = np.array(self.raw_data) / np.sum(self.raw_data, axis=1).values.reshape(-1,1) * 100000
         if log:
@@ -155,14 +183,47 @@ class projection_features(features):
 class soma_features(features):
     def __init__(self):
         features.__init__(self, "Soma")
-        self.df = pd.DataFrame()
+        self.raw_data = pd.DataFrame(columns=["x", "y", "z"])
+        self.region = pd.DataFrame(columns=['Hemisphere', 'Region'])
+        return
+
+    def load_data_from_neuron_dict(self, neuron_dict):
+        assert type(neuron_dict) == dict, "Error: soma_features.load_data_from_neuron_dict(self, neuron_dict).\n" \
+                                          "neuron_dict provided is NOT a python dictionary."
+        for cur_name, cur_neuron in neuron_dict.items():
+            assert type(cur_neuron) == neuron, "Error: soma_features.load_data_from_neuron_dict(self, neuron_dict).\n" \
+                                               "value of neuron_dict is NOT a nmt.neuron."
+
+        for cur_name, cur_neuron in neuron_dict.items():
+            df = cur_neuron.soma
+            # XYZ
+            self.raw_data = pd.concat([self.raw_data, df])
+
+            # Region_table
+            scale_data = [int(df["x"] / nmt.annotation.space["x"]),
+                          int(df["y"] / nmt.annotation.space["y"]),
+                          int(df["z"] / nmt.annotation.space["z"])
+                          ]
+            if df.z[0] < (nmt.annotation.micron_size['z']/2):
+                cur_hemi = 1
+            else:
+                cur_hemi = 2
+            structure_id = nmt.annotation.array[scale_data[0], scale_data[1], scale_data[2]]
+            if structure_id in nmt.bs.dict_to_selected.keys():
+                structure_id = nmt.bs.dict_to_selected[structure_id]
+                cur_region = nmt.bs.level.loc[structure_id, "Abbrevation"]
+            else:
+                cur_region = "unknown"
+            cur_region = pd.DataFrame({"Hemisphere":[cur_hemi],
+                                       "Region":[cur_region]},
+                                      index=[cur_name])
+            self.region = pd.concat([self.region, cur_region])
+        self.normalize()
         return
 
     def load_csv_from_path(self, path):
         self.csv_path = path
         self.metadata = pd.DataFrame(columns=['File_name'])
-        self.raw_data = pd.DataFrame(columns=["x", "y", "z"])
-        self.region = pd.DataFrame(columns=['Hemisphere', 'Region'])
         for input_table in sorted(os.listdir(path)):
             cell_name = input_table.replace(".csv", "").replace(".swc", "").replace(".eswc", "")
             # 1. read a table
@@ -196,5 +257,10 @@ class soma_features(features):
                 cur_region = "unknown"
             cur_region = pd.DataFrame({"Hemisphere":[cur_hemi], "Region":[cur_region]}, index=[cell_name])
             self.region = pd.concat([self.region, cur_region])
-
+        return
+    def normalize(self):
+        scaled_data = scale(self.raw_data)
+        self.scaled_data = pd.DataFrame(scaled_data,
+                                        index=self.raw_data.index,
+                                        columns=self.raw_data.columns)
         return
