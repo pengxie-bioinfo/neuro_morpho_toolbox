@@ -160,7 +160,7 @@ class neuron:
                 cur_hemi_type = cur_hemi[cur_hemi.type == i].groupby(['region_id'])['rho'].sum()
                 cur_df.loc[cur_hemi_type.index, type_name] = cur_hemi_type
             res = pd.concat([res, cur_df], axis=0)
-        print("Time elapsed by get_region_matrix: %.2f; %s" % (time.time() - start, self.name))
+        # print("Time elapsed by get_region_matrix: %.2f; %s" % (time.time() - start, self.name))
         # res = res[np.sum(res[["axon", "apical dendrite", "(basal) dendrite"]], axis=1)>0]
         return res
     # def get_region_matrix(self, annotation, brain_structure, region_used=None):

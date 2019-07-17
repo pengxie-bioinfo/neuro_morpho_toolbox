@@ -27,9 +27,9 @@ def load_swc_list(swc_path, zyx=False):
         if len(neurons) % 100 == 0:
             print("%d loaded: %.1fs" % (len(neurons), time.time()-start))
             start = time.time()
-        # Test:
-        if len(neurons)>=1:
-            break
+        # # Test:
+        # if len(neurons)>=100:
+        #     break
     return neurons
 
 class neuron_set:
@@ -45,31 +45,42 @@ class neuron_set:
         self.features = {}
         if swc_path is None:
             return
-        else:
-            print("Loading...")
-            self.neurons = load_swc_list(swc_path, zyx)
-            self.names = list(self.neurons.keys())
-            self.metadata = pd.DataFrame(index=self.names)
-            print("Finding soma locations...")
-            sf = soma_features()
-            sf.load_data_from_neuron_dict(self.neurons)
-            self.features['soma_features'] = sf
-            print("Getting projection features...")
-            pf = projection_features()
-            pf.load_data_from_neuron_dict(self.neurons)
-            self.features['projection_features'] = pf
+        print("Loading...")
+        self.neurons = load_swc_list(swc_path, zyx)
+        self.names = list(self.neurons.keys())
+        self.metadata = pd.DataFrame(index=self.names)
+        print("Finding soma locations...")
+        sf = soma_features()
+        sf.load_data_from_neuron_dict(self.neurons)
+        self.features['soma_features'] = sf
+        print("Getting projection features...")
+        pf = projection_features()
+        pf.load_data_from_neuron_dict(self.neurons)
+        self.features['projection_features'] = pf
+        print("Getting metadata...")
+        self.metadata['SomaRegion'] = self.features['soma_features'].region.loc[self.names, 'Region']
+        hemi_dict = {1:'Left', 2:'Right'}
+        self.metadata['Hemisphere'] = [hemi_dict[i] for i in self.features['soma_features'].region.loc[self.names, 'Hemisphere'].tolist()]
+        self.metadata['CellType'] = self.features['soma_features'].region.loc[self.names, 'Region'] # Initialized as SomaRegion
+        self.metadata['Cluster'] = [0]*len(self.metadata)
         return
 
     def ReduceDimPCA(self, feature_set='projection_features'):
         assert feature_set in self.features.keys(), "Invalid feature_set name."
-        df = self.features[feature_set].raw_data # TODO: take normalized data as input
+        if feature_set=='projection_features':
+            df = self.features[feature_set].scaled_data
+        else:
+            df = self.features[feature_set].raw_data
         self.PCA = nmt.PCA_wrapper(df)
         return self.PCA
 
     def ReduceDimUMAP(self, feature_set='projection_features',
                       n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean'):
         assert feature_set in self.features.keys(), "Invalid feature_set name."
-        df = self.features[feature_set].raw_data  # TODO: take normalized data as input
+        if feature_set=='projection_features':
+            df = self.features[feature_set].scaled_data
+        else:
+            df = self.features[feature_set].raw_data
         self.UMAP = nmt.UMAP_wrapper(df,
                                      n_neighbors=n_neighbors,
                                      min_dist=min_dist,
@@ -78,17 +89,36 @@ class neuron_set:
         return self.UMAP
 
     def get_feature_values(self, feature_name):
-        for _, cur_feature in self.features.items():
-            if feature_name in cur_feature.raw_data.columns.tolist():
-                return cur_feature.raw_data[feature_name]
-        if feature_name == "Soma_region":
-            return self.features["soma_features"].region
-        assert True, "neuron_set.get_feature_values(self, feature_name): Invalid feature_name."
-        return
+        # Search in feature tables
+        for cur_featureset_name, cur_featureset in self.features.items():
+            if feature_name in cur_featureset.raw_data.columns.tolist():
+                if cur_featureset_name == 'projection_features':
+                    return pd.DataFrame(cur_featureset.scaled_data[feature_name])
+                else:
+                    return pd.DataFrame(cur_featureset.raw_data[feature_name])
+        # Search in the metadata table
+        if feature_name in self.metadata.columns.tolist():
+            return pd.DataFrame(self.metadata[feature_name])
+        # If cannot find given feature name, return empty dataframe.
+        # assert True, "neuron_set.get_feature_values(self, feature_name): Invalid feature_name."
+        return pd.DataFrame(index=self.names)
+
+    def get_feature_list_values(self, feature_list):
+        assert type(feature_list) == list, "neuron_set.get_feature_list_values: Input must be a list"
+        res = pd.DataFrame(index=self.names)
+        for feature_name in feature_list:
+            tp = self.get_feature_values(feature_name)
+            if tp.shape[1]>0:
+                res = pd.concat([res, tp], axis=1)
+        return res
 
     def FeatureScatter(self, feature_name, map="UMAP"):
         # Find feature values
-        z = self.get_feature_values(feature_name=feature_name)
+        if type(feature_name) == list:
+            z = self.get_feature_list_values(feature_list=feature_name)
+        else:
+            z = self.get_feature_values(feature_name=feature_name)
+        # Find reduced dimension data
         if map == "UMAP":
             x = self.UMAP.iloc[:,0]
             y = self.UMAP.iloc[:,1]
@@ -99,10 +129,10 @@ class neuron_set:
             assert True, "neuron_set.FeatureScatter(self, feature_name, map='UMAP'): Invalid map."
             return
         # If feature is categorical
-        if not z.dtype in ['int', 'float']:
-            fig = nmt.qualitative_scatter(x, y, z)
-        else:
+        if z.select_dtypes(include=['float', 'int']).shape[1] == z.shape[1]: # If all values are numeric
             fig = nmt.quantitative_scatter(x, y, z)
+        else:
+            fig = nmt.qualitative_scatter(x, y, z)
         return fig
 
 

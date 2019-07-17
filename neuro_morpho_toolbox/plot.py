@@ -141,20 +141,96 @@ def rgb_to_list(rgb_str):
     res = [float(i)/255 for i in tp.split(",")]
     return res
 
-def quantitative_scatter(x, y, c, cmap='viridis'):
-    fig, ax = plt.subplots(1, 1, figsize=(6, 6))
-    s = ax.scatter(x, y, c=c, cmap='bwr')
-    # Creating color bar
-    divider = make_axes_locatable(ax)
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    plt.colorbar(s, cax)
+
+def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5):
+    max_col = 3
+    subplot_w = 6
+    subplot_h = 6
+    feature_list = c.columns.tolist()
+    subplot_n = len(feature_list)
+    if subplot_n <= max_col:
+        n_col = subplot_n
+        n_row = 1
+    else:
+        n_col = max_col
+        n_row = int(subplot_n / max_col)
+        if (subplot_n % max_col) != 0:
+            n_row += 1
+    fig, ax = plt.subplots(n_row, n_col,
+                           figsize=(subplot_w * n_col,
+                                    subplot_h * n_row),
+                           squeeze=False
+                           )
+    ax = ax.reshape(-1)
+    for i, cur_ax in enumerate(ax.tolist()[:subplot_n]):
+        feature_name = c.columns.tolist()[i]
+        cur_ax.scatter(x, y,
+                       c=(.5, .5, .5),
+                       s=s,
+                       alpha=0.5)
+        P = cur_ax.scatter(x, y,
+                           c=c[feature_name],
+                           cmap=cmap,
+                           s=s,
+                           vmax=np.percentile(c[feature_name], q=95),
+                           vmin=np.percentile(c[feature_name], q=5),
+                           alpha=alpha)
+        cur_ax.set_xlabel("Dim1")
+        cur_ax.set_ylabel("Dim2")
+        cur_ax.set_title(feature_name)
+        # Creating color bar
+        divider = make_axes_locatable(cur_ax)
+        cax = divider.append_axes("right", size="5%", pad=0.05)
+        plt.colorbar(P, cax)
     return fig
 
+
 def qualitative_scatter(x, y, c):
+    max_col = 3
+    subplot_w = 8
+    subplot_h = 8
+    feature_list = c.columns.tolist()
+    subplot_n = len(feature_list)
+    if subplot_n <= max_col:
+        n_col = subplot_n
+        n_row = 1
+    else:
+        n_col = max_col
+        n_row = int(subplot_n / max_col)
+        if (subplot_n % max_col) != 0:
+            n_row += 1
+    fig, ax = plt.subplots(n_row, n_col,
+                           figsize=(subplot_w * n_col,
+                                    subplot_h * n_row),
+                           squeeze=False
+                           )
+    ax = ax.reshape(-1)
+    df = pd.DataFrame({'Dim_1': x, 'Dim_2': y})
+    df = pd.concat([df, c.copy()], axis=1)
+    for i, cur_ax in enumerate(ax.tolist()[:subplot_n]):
+        feature_name = feature_list[i]
+        ct = df[feature_name].value_counts()
+        # Control length of legend
+        if len(ct) > 10:
+            collapsed_features = ct[12:].index.tolist() + ['unknown', "fiber tracts"]
+            df.loc[df[feature_name].isin(collapsed_features), feature_name] = "Others"
 
-    df = pd.DataFrame({'x': x, 'y': y, 'Feature': c})
+        ct = df[feature_name].value_counts()
+        hue_order = ct.index.tolist()
+        if hue_order.count('Others') > 0:
+            #             hue_order.append(hue_order.pop(hue_order.index('Others')))
+            hue_order.pop(hue_order.index('Others'))
 
-    sns.relplot(x='x', y='y', hue='c', data=df)
-    df = pd.DataFrame({'Dim_1':x, 'Dim_2':y, 'Feature':c})
-    fig = sns.relplot(x='x', y='y', hue='Feature', data=df)
+        sns.scatterplot(x='Dim_1', y='Dim_2',
+                        data=df[df[feature_name] == 'Others'],
+                        c=(.5, .5, .5),
+                        alpha=0.25,
+                        #                         palette='Spectral',
+                        ax=cur_ax)
+        sns.scatterplot(x='Dim_1', y='Dim_2',
+                        hue=feature_name, hue_order=hue_order,
+                        data=df[df[feature_name] != 'Others'],
+                        #                         palette='Spectral',
+                        alpha=0.75,
+                        ax=cur_ax)
     return fig

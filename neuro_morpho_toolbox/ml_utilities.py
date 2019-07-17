@@ -9,6 +9,7 @@ from timeit import default_timer as timer
 from sklearn.preprocessing import scale
 from sklearn.manifold import Isomap, TSNE
 from sklearn.metrics import silhouette_samples, silhouette_score
+from sklearn.decomposition import PCA
 import scipy
 import umap
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
@@ -35,9 +36,10 @@ from numpy import linalg as LA
 #######################################################################################
 # Functions for dimension reduction
 
-def PCA_wrapper(X):
-    # TODO
-    return
+def PCA_wrapper(df, n_components=50):
+    Z = PCA(n_components=n_components).fit_transform(df)
+    Z_df = pd.DataFrame(Z, index=df.index)
+    return Z_df
 
 def UMAP_wrapper(df, n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean'):
     umap_reducer = umap.UMAP(n_neighbors=n_neighbors,
