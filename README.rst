@@ -3,5 +3,5 @@ _____________________
 
 To use (with caution), simply do:
 
->>> import neuron_morpho_toolbox
+>>> import neuro_morpho_toolbox
 >>> neuron_morpho_toolbox.helloworld()

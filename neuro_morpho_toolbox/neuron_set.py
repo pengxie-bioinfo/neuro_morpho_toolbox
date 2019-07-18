@@ -3,7 +3,8 @@ import pandas as pd
 
 import time
 import os
-
+from sklearn import metrics
+    
 from neuro_morpho_toolbox import neuron, soma_features, projection_features
 import neuro_morpho_toolbox as nmt
 
@@ -63,6 +64,7 @@ class neuron_set:
         self.metadata['Hemisphere'] = [hemi_dict[i] for i in self.features['soma_features'].region.loc[self.names, 'Hemisphere'].tolist()]
         self.metadata['CellType'] = self.features['soma_features'].region.loc[self.names, 'Region'] # Initialized as SomaRegion
         self.metadata['Cluster'] = [0]*len(self.metadata)
+
         return
 
     def ReduceDimPCA(self, feature_set='projection_features'):
@@ -75,10 +77,10 @@ class neuron_set:
         return self.PCA
 
     def ReduceDimUMAP(self, feature_set='projection_features',
-                      n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean',
-                      PCA_first=True,
-                      n_PC=100 # TODO: more reasonable n_PC choice
-                      ):
+                      n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean'):
+                      #PCA_first=True,
+                      #n_PC=100 # TODO: more reasonable n_PC choice
+                      
         assert feature_set in self.features.keys(), "Invalid feature_set name."
         if feature_set=='projection_features':
             df = self.features[feature_set].scaled_data
@@ -115,6 +117,15 @@ class neuron_set:
                 community_method = 'FastGreedy'
             cur_clusters = nmt.get_clusters_SNN_community(self.UMAP, knn=knn, metric=metric, method=community_method)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]
+            print("Homogeneity: %0.3f" % metrics.homogeneity_score(self.metadata['CellType'],self.metadata['Cluster']))
+            print("Completeness: %0.3f" % metrics.completeness_score(self.metadata['CellType'],self.metadata['Cluster']))
+            print("V-measure: %0.3f" % metrics.v_measure_score(self.metadata['CellType'],self.metadata['Cluster']))
+            print("Adjusted Rand Index: %0.3f"
+              % metrics.adjusted_rand_score(self.metadata['CellType'],self.metadata['Cluster']))
+            print("Adjusted Mutual Information: %0.3f"
+              % metrics.adjusted_mutual_info_score(self.metadata['CellType'],self.metadata['Cluster']))
+            print("Silhouette Coefficient: %0.3f"
+              % metrics.silhouette_score(self.UMAP, self.metadata['Cluster'], metric='sqeuclidean'))        
             return
         # TODO: other clustering methods...
 
@@ -167,4 +178,6 @@ class neuron_set:
             fig = nmt.qualitative_scatter(x, y, z)
         return fig
 
-
+'''
+    def MetricCal(self, feature_name, map="UMAP"):
+        '''

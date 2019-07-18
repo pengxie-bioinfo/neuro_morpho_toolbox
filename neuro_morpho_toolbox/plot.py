@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from .swc import neuron
 
-import plotly.plotly as py
+import chart_studio.plotly as py
 import plotly.offline as po
 import plotly.graph_objs as go
 
