@@ -41,7 +41,12 @@ def PCA_wrapper(df, n_components=50):
     Z_df = pd.DataFrame(Z, index=df.index)
     return Z_df
 
-def UMAP_wrapper(df, n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean'):
+def UMAP_wrapper(df, n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean', PCA_first=True, n_PC=100):
+    if PCA_first:
+        n_PC = min([df.shape[0], n_PC])
+        pca = PCA(n_components=n_PC)
+        Z = pca.fit_transform(df)
+        df = pd.DataFrame(Z, index=df.index)
     umap_reducer = umap.UMAP(n_neighbors=n_neighbors,
                              min_dist=min_dist,
                              n_components=n_components,
@@ -143,7 +148,7 @@ def SNN(x, k=3, verbose=True, metric='minkowski'):
     return (edge)
 
 
-def get_clusters(x, knn=3, metric='minkowski', method='FastGreedy'):
+def get_clusters_SNN_community(x, knn=3, metric='minkowski', method='FastGreedy'):
     stamp = timer()
     '''
     Create graph
@@ -163,6 +168,7 @@ def get_clusters(x, knn=3, metric='minkowski', method='FastGreedy'):
     Clustering
     '''
     # print('Time elapsed:\t', '{:.2e}'.format(timer() - stamp))
+    # TODO: other community detection methods...
     return (g.community_fastgreedy(weights='weights').as_clustering().membership)
 
 def plot_co_cluster(co_cluster, save_prefix=None):

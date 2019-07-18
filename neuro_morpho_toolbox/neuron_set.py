@@ -75,7 +75,10 @@ class neuron_set:
         return self.PCA
 
     def ReduceDimUMAP(self, feature_set='projection_features',
-                      n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean'):
+                      n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean',
+                      PCA_first=True,
+                      n_PC=100 # TODO: more reasonable n_PC choice
+                      ):
         assert feature_set in self.features.keys(), "Invalid feature_set name."
         if feature_set=='projection_features':
             df = self.features[feature_set].scaled_data
@@ -85,8 +88,37 @@ class neuron_set:
                                      n_neighbors=n_neighbors,
                                      min_dist=min_dist,
                                      n_components=n_components,
-                                     metric=metric)
+                                     metric=metric,
+                                     PCA_first=PCA_first,
+                                     n_PC=n_PC
+                                     )
         return self.UMAP
+
+    def get_clusters(self,
+                     method='SNN_community',
+                     karg_dict={'knn':5,
+                                'metric':'minkowski',
+                                'method':'FastGreedy'}
+                     ):
+        if method=='SNN_community':
+            if 'knn' in karg_dict.keys():
+                knn = karg_dict['knn']
+            else:
+                knn = 5
+            if 'metric' in karg_dict.keys():
+                metric = karg_dict['metric']
+            else:
+                metric = 'minkowski'
+            if 'method' in karg_dict.keys():
+                community_method = karg_dict['method']
+            else:
+                community_method = 'FastGreedy'
+            cur_clusters = nmt.get_clusters_SNN_community(self.UMAP, knn=knn, metric=metric, method=community_method)
+            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]
+            return
+        # TODO: other clustering methods...
+
+
 
     def get_feature_values(self, feature_name):
         # Search in feature tables
