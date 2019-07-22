@@ -77,9 +77,8 @@ class neuron_set:
         return self.PCA
 
     def ReduceDimUMAP(self, feature_set='projection_features',
-                      n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean'):
-                      #PCA_first=True,
-                      #n_PC=100 # TODO: more reasonable n_PC choice
+                      n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean',PCA_first=True,n_PC=100 ):
+        # TODO: more reasonable n_PC choice
                       
         assert feature_set in self.features.keys(), "Invalid feature_set name."
         if feature_set=='projection_features':
@@ -178,6 +177,3 @@ class neuron_set:
             fig = nmt.qualitative_scatter(x, y, z)
         return fig
 
-'''
-    def MetricCal(self, feature_name, map="UMAP"):
-        '''
