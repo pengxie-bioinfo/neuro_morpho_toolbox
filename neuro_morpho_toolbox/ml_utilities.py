@@ -13,9 +13,11 @@ from sklearn.decomposition import PCA
 import scipy
 import umap
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+import sklearn.cluster
+from sklearn.cluster import KMeans
 import seaborn as sns
 import matplotlib.cm as cm
-
+from scipy.cluster.hierarchy import dendrogram, linkage
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.stats import mannwhitneyu
 
@@ -32,7 +34,8 @@ import subprocess
 from pathlib import Path
 from numpy import linalg as LA
 
-
+def helloworld():
+print('Hello World')
 #######################################################################################
 # Functions for dimension reduction
 
@@ -171,6 +174,69 @@ def get_clusters_SNN_community(x, knn=3, metric='minkowski', method='FastGreedy'
     # TODO: other community detection methods...
     return (g.community_fastgreedy(weights='weights').as_clustering().membership)
 
+
+def get_clusters_Hierachy_clustering(x, karg_dict):
+    #linkage(Z, method='single', metric='euclidean', optimal_ordering=False)
+    if 'L_method' in karg_dict.keys():
+        L_method = karg_dict['L_method']
+        #L_metric can be braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’, 
+        #‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’,
+        #‘jensenshannon’, ‘kulsinski’, ‘mahalanobis’, ‘matching’, ‘minkowski’,
+        #‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, ‘sokalmichener’, 
+        #‘sokalsneath’, ‘sqeuclidean’, ‘yule’.
+        if 'L_metric' in karg_dict.keys():
+            L_metric = karg_dict['L_metric']
+            Z = linkage(x,method=L_method,mtric = L_metric)
+        else:
+            Z = linkage(x,method=L_method)
+    else:
+        Z = linkage(x, method ='single', metric='euclidean')
+    
+    if 'criterion' in karg_dict.keys():
+        criterionH = karg_dict['criterion']
+        #fcluster(Z, numC=20, criterion='maxclust')
+        if criterionH == 'maxclust':
+            if 'numC' in karg_dict.keys():
+                numC = karg_dict['numC']
+            else:
+                numC = 20
+            return fcluster(Z,t=numC,criterion=criterionH)
+        #fcluster(Z, copheneticD=0.9, criterion='distance')
+        if criterionH == 'distance':
+             if 'copheneticD' in karg_dict.keys():
+                 copheneticD = karg_dict['copheneticD']
+             else:
+                 copheneticD = 0.9
+             return fcluster(Z, t=copheneticD, criterion=criterionH)
+        #fcluster(Z, t=0.9, depth=2, criterion='inconsistency')
+        if criterionH == 'inconsistent':
+             if 'depth' in karg_dict.keys():
+                 depth = karg_dict['depth']
+             else:
+                 depth = 2
+             if 't' in karg_dict.keys():
+                 t = karg_dict['t']
+             else:
+                t = 0.9
+             return fcluster(Z, t, depth ,criterion=criterionH)
+    else:
+        return fcluster(Z,t=0.9,criterion='inconsistent', depth=2, R=None, monocrit=None)
+
+       
+def get_clusters_kmeans_clustering(x,  n_clusters=20, init='k-means++', n_init=10, max_iter=300, tol=0.0001, precompute_distances='auto', verbose=0, random_state=None, copy_x=True, n_jobs=None, algorithm='auto'):
+    estimator= KMeans(n_clusters, random_state=100)
+    return estimator.fit_predict(x,algorithm)
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
 def plot_co_cluster(co_cluster, save_prefix=None):
     # Plot 1: Hierarchical clustering (by samples)
 
@@ -212,4 +278,5 @@ def plot_co_cluster(co_cluster, save_prefix=None):
     # if save:
     #     g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
     return
+
 

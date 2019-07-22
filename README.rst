@@ -4,4 +4,4 @@ _____________________
 To use (with caution), simply do:
 
 >>> import neuro_morpho_toolbox
->>> neuron_morpho_toolbox.helloworld()
+>>> neuro_morpho_toolbox.helloworld()

@@ -4,7 +4,7 @@ import pandas as pd
 import time
 import os
 from sklearn import metrics
-    
+from scipy.cluster.hierarchy import dendrogram, linkage    
 from neuro_morpho_toolbox import neuron, soma_features, projection_features
 import neuro_morpho_toolbox as nmt
 
@@ -85,14 +85,7 @@ class neuron_set:
             df = self.features[feature_set].scaled_data
         else:
             df = self.features[feature_set].raw_data
-        self.UMAP = nmt.UMAP_wrapper(df,
-                                     n_neighbors=n_neighbors,
-                                     min_dist=min_dist,
-                                     n_components=n_components,
-                                     metric=metric,
-                                     PCA_first=PCA_first,
-                                     n_PC=n_PC
-                                     )
+        self.UMAP = nmt.UMAP_wrapper(df, n_neighbors=n_neighbors,min_dist=min_dist,n_components=n_components,metric=metric,PCA_first=PCA_first,n_PC=n_PC)
         return self.UMAP
 
     def get_clusters(self,
@@ -102,6 +95,7 @@ class neuron_set:
                                 'method':'FastGreedy'}
                      ):
         if method=='SNN_community':
+            print('Result of SNN_community')
             if 'knn' in karg_dict.keys():
                 knn = karg_dict['knn']
             else:
@@ -116,16 +110,33 @@ class neuron_set:
                 community_method = 'FastGreedy'
             cur_clusters = nmt.get_clusters_SNN_community(self.UMAP, knn=knn, metric=metric, method=community_method)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]
-            print("Homogeneity: %0.3f" % metrics.homogeneity_score(self.metadata['CellType'],self.metadata['Cluster']))
-            print("Completeness: %0.3f" % metrics.completeness_score(self.metadata['CellType'],self.metadata['Cluster']))
-            print("V-measure: %0.3f" % metrics.v_measure_score(self.metadata['CellType'],self.metadata['Cluster']))
-            print("Adjusted Rand Index: %0.3f"
-              % metrics.adjusted_rand_score(self.metadata['CellType'],self.metadata['Cluster']))
-            print("Adjusted Mutual Information: %0.3f"
-              % metrics.adjusted_mutual_info_score(self.metadata['CellType'],self.metadata['Cluster']))
-            print("Silhouette Coefficient: %0.3f"
-              % metrics.silhouette_score(self.UMAP, self.metadata['Cluster'], metric='sqeuclidean'))        
-            return
+            
+        #karg_dict={'L_method':'single','L_metric':'euclidean'.'t':0.9,'criterionH':'inconsistent', depth=2, R=None, monocrit=None}
+        if method =='Hierachy':
+            print('Result of Hierachy CLustering')
+            # t is the maximum inter-cluster distance allowed
+            cur_clusters = nmt.get_clusters_Hierachy_clustering(self.UMAP, karg_dict)
+            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]        
+            
+                #karg_dict={'t':0.9,'L_method':'single','method':'FastGreedy'}
+                
+        if method =='Kmeans':
+            print('Result of Kmeans')
+            cur_clusters = nmt.ml_utilities.get_clusters_kmeans_clustering(self.UMAP, n_clusters=20, init='k-means++', n_init=10, 
+                                                              max_iter=300, tol=0.0001, precompute_distances='auto', 
+                                                              verbose=0, random_state=None, copy_x=True, n_jobs=None, 
+                                                              algorithm='auto')
+            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]    
+        print("Homogeneity: %0.3f" % metrics.homogeneity_score(self.metadata['CellType'],self.metadata['Cluster']))
+        print("Completeness: %0.3f" % metrics.completeness_score(self.metadata['CellType'],self.metadata['Cluster']))
+        print("V-measure: %0.3f" % metrics.v_measure_score(self.metadata['CellType'],self.metadata['Cluster']))
+        print("Adjusted Rand Index: %0.3f"
+        % metrics.adjusted_rand_score(self.metadata['CellType'],self.metadata['Cluster']))
+        print("Adjusted Mutual Information: %0.3f"
+        % metrics.adjusted_mutual_info_score(self.metadata['CellType'],self.metadata['Cluster']))
+        print("Silhouette Coefficient: %0.3f"
+        % metrics.silhouette_score(self.UMAP, self.metadata['Cluster'], metric='sqeuclidean'))        
+        return            
         # TODO: other clustering methods...
 
 
@@ -176,4 +187,5 @@ class neuron_set:
         else:
             fig = nmt.qualitative_scatter(x, y, z)
         return fig
+
 
