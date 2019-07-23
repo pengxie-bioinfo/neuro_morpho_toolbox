@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-
+from .ml_utilities import *
 import time
 import os
 from sklearn import metrics
@@ -122,7 +122,7 @@ class neuron_set:
                 
         if method =='Kmeans':
             print('Result of Kmeans')
-            cur_clusters = nmt.ml_utilities.get_clusters_kmeans_clustering(self.UMAP, n_clusters=20, init='k-means++', n_init=10, 
+            cur_clusters = nmt.get_clusters_kmeans_clustering(self.UMAP, n_clusters=20, init='k-means++', n_init=10, 
                                                               max_iter=300, tol=0.0001, precompute_distances='auto', 
                                                               verbose=0, random_state=None, copy_x=True, n_jobs=None, 
                                                               algorithm='auto')
@@ -187,5 +187,6 @@ class neuron_set:
         else:
             fig = nmt.qualitative_scatter(x, y, z)
         return fig
+
 
 
