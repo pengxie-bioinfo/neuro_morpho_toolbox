@@ -92,8 +92,26 @@ class neuron_set:
                      method='SNN_community',
                      karg_dict={'knn':5,
                                 'metric':'minkowski',
-                                'method':'FastGreedy'}
-                     ):
+                                'method':'FastGreedy'}):
+                     #hier_dict={'L_method':'single',
+                                #'L_metric':'euclidean',
+                                #'criterionH':'inconsistent',
+                               # 'depth':2,'R':None,
+                               # 't':0.9,
+                               # 'optimal_ordering':False},
+                    #kmeans_dict={'n_clusters':20, 
+                         #         'init':'k-means++', 
+                          #        'n_init':10, 'max_iter':300, 'tol':0.0001,
+                          #        'precompute_distances':'auto', 
+                          #        'verbose':0, 'random_state':None, 
+                          #        'copy_x': True, 
+                           #       'n_jobs':None, 'algorithm':'auto'}
+                    #dbscan_dict={'eps':0.5, 
+                         #         'min_samples':5, 
+                          #        'metric':'euclidean','metric_params':None,
+                          #        'algorithm':'auto', 
+                          #        'leaf_size':30, 'p':None,'n_jobs':None}
+                     
         if method=='SNN_community':
             print('Result of SNN_community')
             if 'knn' in karg_dict.keys():
@@ -112,21 +130,26 @@ class neuron_set:
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]
             
         #karg_dict={'L_method':'single','L_metric':'euclidean'.'t':0.9,'criterionH':'inconsistent', depth=2, R=None, monocrit=None}
-        if method =='Hierachy':
-            print('Result of Hierachy CLustering')
-            # t is the maximum inter-cluster distance allowed
-            cur_clusters = nmt.get_clusters_Hierachy_clustering(self.UMAP, karg_dict)
+        if method =='Hierarchy':
+            print('Result of Hierarchy CLustering')
+            cur_clusters = nmt.get_clusters_Hierarchy_clustering(self.UMAP, karg_dict)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]        
             
-                #karg_dict={'t':0.9,'L_method':'single','method':'FastGreedy'}
-                
+                                
         if method =='Kmeans':
             print('Result of Kmeans')
-            cur_clusters = nmt.get_clusters_kmeans_clustering(self.UMAP, n_clusters=20, init='k-means++', n_init=10, 
-                                                              max_iter=300, tol=0.0001, precompute_distances='auto', 
-                                                              verbose=0, random_state=None, copy_x=True, n_jobs=None, 
-                                                              algorithm='auto')
+            cur_clusters = nmt.get_clusters_kmeans_clustering(self.UMAP, karg_dict)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]    
+            
+        if method =='DBSCAN':
+            print('Result of DBSCAN')
+            cur_clusters = nmt.get_clusters_dbscan_clustering(self.UMAP, karg_dict)
+            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]             
+            
+        self.get_cluster_metric()
+        return            
+        # TODO: other clustering methods...
+    def get_cluster_metric(self):
         print("Homogeneity: %0.3f" % metrics.homogeneity_score(self.metadata['CellType'],self.metadata['Cluster']))
         print("Completeness: %0.3f" % metrics.completeness_score(self.metadata['CellType'],self.metadata['Cluster']))
         print("V-measure: %0.3f" % metrics.v_measure_score(self.metadata['CellType'],self.metadata['Cluster']))
@@ -134,12 +157,14 @@ class neuron_set:
         % metrics.adjusted_rand_score(self.metadata['CellType'],self.metadata['Cluster']))
         print("Adjusted Mutual Information: %0.3f"
         % metrics.adjusted_mutual_info_score(self.metadata['CellType'],self.metadata['Cluster']))
-        print("Silhouette Coefficient: %0.3f"
+        typeR, typeC = np.unique(self.metadata['Cluster'], return_counts = True)
+        if len(typeR)<2:
+            print('Number of labels is 1, no available Silhouette Coefficient can be calculated')
+        elif len(typeR)>=self.UMAP.shape[0]:
+            print('Number of labels is equal to the number of samples, no available Silhouette Coefficient can be calculated')
+        else:
+            print("Silhouette Coefficient: %0.3f"
         % metrics.silhouette_score(self.UMAP, self.metadata['Cluster'], metric='sqeuclidean'))        
-        return            
-        # TODO: other clustering methods...
-
-
 
     def get_feature_values(self, feature_name):
         # Search in feature tables
@@ -187,6 +212,5 @@ class neuron_set:
         else:
             fig = nmt.qualitative_scatter(x, y, z)
         return fig
-
 
 

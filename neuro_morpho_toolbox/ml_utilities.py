@@ -12,15 +12,14 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.decomposition import PCA
 import scipy
 import umap
-from scipy.cluster.hierarchy import linkage, dendrogram, fcluster
+from scipy.cluster.hierarchy import linkage, dendrogram, fcluster,inconsistent
+from scipy.cluster.hierarchy import maxRstat,maxinconsts
 import sklearn.cluster
-from sklearn.cluster import KMeans
 import seaborn as sns
 import matplotlib.cm as cm
-from scipy.cluster.hierarchy import dendrogram, linkage
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.stats import mannwhitneyu
-
+import hdbscan
 # from pysankey import sankey
 
 from sklearn.cluster import AgglomerativeClustering, KMeans, DBSCAN, SpectralClustering, Birch
@@ -35,7 +34,7 @@ from pathlib import Path
 from numpy import linalg as LA
 
 def helloworld():
-print('Hello World')
+    print('Hello World')
 #######################################################################################
 # Functions for dimension reduction
 
@@ -175,61 +174,147 @@ def get_clusters_SNN_community(x, knn=3, metric='minkowski', method='FastGreedy'
     return (g.community_fastgreedy(weights='weights').as_clustering().membership)
 
 
-def get_clusters_Hierachy_clustering(x, karg_dict):
-    #linkage(Z, method='single', metric='euclidean', optimal_ordering=False)
-    if 'L_method' in karg_dict.keys():
-        L_method = karg_dict['L_method']
-        #L_metric can be braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’, 
-        #‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’,
-        #‘jensenshannon’, ‘kulsinski’, ‘mahalanobis’, ‘matching’, ‘minkowski’,
-        #‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, ‘sokalmichener’, 
-        #‘sokalsneath’, ‘sqeuclidean’, ‘yule’.
-        if 'L_metric' in karg_dict.keys():
-            L_metric = karg_dict['L_metric']
-            Z = linkage(x,method=L_method,mtric = L_metric)
+def get_clusters_Hierarchy_clustering(x, hier_dict):  
+    #default value
+    L_method='single'
+    L_metric='euclidean'  
+    t=0.9
+    criterionH='inconsistent'
+    depth=2
+    R=None
+    monocrit=None
+    #L_metric can be 'braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’, 
+    #‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’,
+    # ‘kulsinski’, ‘mahalanobis’, ‘matching’, ‘minkowski’,
+    #‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, ‘sokalmichener’, 
+    #‘sokalsneath’, ‘sqeuclidean’
+    #**Note that ‘jensenshannon’,‘yule’may result in a condensed distance matrix which contains infinite value
+    if 'L_metric' in hier_dict.keys():
+        L_metric = hier_dict['L_metric']
+   # L_method can be 'single', 'complete','average','weighted','centroid','median','ward'
+    if 'L_method' in hier_dict.keys():
+        L_method = hier_dict['L_method']
+    if L_method == 'centroid' or L_method == 'median':
+        L_metric = 'euclidean'
+        print('*************Note:**************')
+        print('Method '+str(L_method)+'requires the distance metric to be Euclidean')
+        
+    if 'optimal_ordering' in hier_dict.keys():
+        optimal_ordering = hier_dict['optimal_ordering']
+    else:
+        optimal_ordering=False
+    Z = linkage(x, method=L_method, metric=L_metric, optimal_ordering=optimal_ordering)
+    #criterion can be 
+    if 'criterionH' in hier_dict.keys():
+        criterionH = hier_dict['criterionH']
+    else:
+        criterionH = 'inconsistent'
+    if 'depth' in hier_dict.keys():
+        depth = hier_dict['depth']
+    else:
+        depth = 2
+    if 't' in hier_dict.keys():
+        t = hier_dict['t']
+        #for 'maxclust' or 'maxclust_monocrit' criteria,
+         #t would be max number of clusters requested.
+    elif criterionH == 'maxclust_monocrit' or criterionH == 'maxclust':
+        t = 20
+
+    if 'R' in hier_dict.keys():
+        R = hier_dict['R']      
+    if criterionH == 'inconsistent':
+        #The inconsistency matrix to use for the 'inconsistent' criterion. 
+        #R is computed if not provided.
+        if R is None:
+            R = inconsistent(Z, d=depth)
         else:
-            Z = linkage(x,method=L_method)
+            R = np.asarray(R, order='c')
+    if np.where(np.isinf(Z),-np.Inf,Z).argmax()>0:
+        print('*************Note:**************')
+        print('For input '+str(hier_dict)+', the condensed distance matrix has infinite values, just use the default value')
+        return fcluster(Z,criterion='inconsistent',t=0.9, depth=2)
+    elif criterionH == 'monocrit':
+        return fcluster(Z,criterion='monocrit',t=t, monocrit=maxRstat(Z, R, 3))
+    elif criterionH == 'maxclust_monocrit':
+        return fcluster(Z,criterion='maxclust_monocrit',t=t, monocrit= maxinconsts(Z, R))
     else:
-        Z = linkage(x, method ='single', metric='euclidean')
-    
-    if 'criterion' in karg_dict.keys():
-        criterionH = karg_dict['criterion']
-        #fcluster(Z, numC=20, criterion='maxclust')
-        if criterionH == 'maxclust':
-            if 'numC' in karg_dict.keys():
-                numC = karg_dict['numC']
-            else:
-                numC = 20
-            return fcluster(Z,t=numC,criterion=criterionH)
-        #fcluster(Z, copheneticD=0.9, criterion='distance')
-        if criterionH == 'distance':
-             if 'copheneticD' in karg_dict.keys():
-                 copheneticD = karg_dict['copheneticD']
-             else:
-                 copheneticD = 0.9
-             return fcluster(Z, t=copheneticD, criterion=criterionH)
-        #fcluster(Z, t=0.9, depth=2, criterion='inconsistency')
-        if criterionH == 'inconsistent':
-             if 'depth' in karg_dict.keys():
-                 depth = karg_dict['depth']
-             else:
-                 depth = 2
-             if 't' in karg_dict.keys():
-                 t = karg_dict['t']
-             else:
-                t = 0.9
-             return fcluster(Z, t, depth ,criterion=criterionH)
-    else:
-        return fcluster(Z,t=0.9,criterion='inconsistent', depth=2, R=None, monocrit=None)
+        return fcluster(Z,criterion=criterionH, depth=depth, R=R, t=t)
 
        
-def get_clusters_kmeans_clustering(x,  n_clusters=20, init='k-means++', n_init=10, max_iter=300, tol=0.0001, precompute_distances='auto', verbose=0, random_state=None, copy_x=True, n_jobs=None, algorithm='auto'):
-    estimator= KMeans(n_clusters, random_state=100)
-    return estimator.fit_predict(x,algorithm)
+def get_clusters_kmeans_clustering(x,  kmeans_dict):
+    #default value
+    n_clusters=8
+    init='k-means++'
+    n_init=10
+    max_iter=300
+    tol=0.0001
+    precompute_distances='auto'
+    verbose=0
+    random_state=None
+    copy_x=True
+    n_jobs=None
+    algorithm='auto'
+    if 'n_clusters' in kmeans_dict.keys():
+        n_clusters = kmeans_dict['n_clusters']    
+    if 'algorithm' in kmeans_dict.keys():
+        algorithm = kmeans_dict['algorithm']
+    if 'n_init' in kmeans_dict.keys():
+        n_init = kmeans_dict['n_init']
+    if 'init' in kmeans_dict.keys():
+        init = kmeans_dict['init']
+    if 'max_iter' in kmeans_dict.keys():
+        max_iter = kmeans_dict['max_iter']
+    if 'tol' in kmeans_dict.keys():
+        tol = kmeans_dict['tol']
+    if 'precompute_distances' in kmeans_dict.keys():
+        precompute_distances = kmeans_dict['precompute_distances']
+    if 'verbose' in kmeans_dict.keys():
+        verbose = kmeans_dict['verbose']
+    if 'random_state' in kmeans_dict.keys():
+        random_state = kmeans_dict['random_state']
+    if 'copy_x'in kmeans_dict.keys():     
+        copy_x = kmeans_dict['copy_x']
+    if 'n_jobs' in kmeans_dict.keys():
+        n_jobs = kmeans_dict['n_jobs']
+    if 'algorithm' in kmeans_dict.keys():
+        algorithm = kmeans_dict['algorithm']
+    return KMeans(n_clusters,init,n_init,max_iter,tol,precompute_distances,verbose,random_state,copy_x,n_jobs, algorithm).fit(x).labels_
     
     
     
-    
+def get_clusters_dbscan_clustering(x,dbscan_dict):
+    #default value
+    eps=0.5
+    min_samples=5
+    metric='euclidean'
+    metric_params=None
+    algorithm='auto'
+    leaf_size=30
+    p=None
+    n_jobs=None
+    if 'eps' in dbscan_dict.keys():
+        eps = dbscan_dict['eps']    
+    #else:
+       # eps  = 0.5
+    if 'min_samples' in dbscan_dict.keys():
+        min_samples = dbscan_dict['min_samples']
+    #else:
+       # min_samples = 5
+    if 'metric' in dbscan_dict.keys():
+        metric = dbscan_dict['metric']
+    #else:
+        #metric = 'euclidean'
+    if 'metric_params' in dbscan_dict.keys():
+        metric_params = dbscan_dict['metric_params']
+    if 'algorithm' in dbscan_dict.keys():
+        algorithm = dbscan_dict['algorithm']
+    if 'leaf_size' in dbscan_dict.keys():
+        leaf_size = dbscan_dict['leaf_size']
+    if 'p' in dbscan_dict.keys():
+        p = dbscan_dict['p']
+    if 'n_jobs' in dbscan_dict.keys():
+        n_jobs = dbscan_dict['n_jobs']
+    return DBSCAN(eps, min_samples, metric, metric_params, algorithm, leaf_size, p, n_jobs).fit(x).labels_    
     
     
     
@@ -278,5 +363,6 @@ def plot_co_cluster(co_cluster, save_prefix=None):
     # if save:
     #     g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
     return
+
 
 
