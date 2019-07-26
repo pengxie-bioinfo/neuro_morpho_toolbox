@@ -111,6 +111,11 @@ class neuron_set:
                           #        'metric':'euclidean','metric_params':None,
                           #        'algorithm':'auto', 
                           #        'leaf_size':30, 'p':None,'n_jobs':None}
+                    #hdbscan_dict={'min_cluster_size':5, 
+                         #         'min_samples':1, 
+                          #        'metric':'euclidean','alpha':None,
+                          #        'p': ,'algorithm':'auto', 
+                          #        'leaf_size':40, 'p':2}
                      
         if method=='SNN_community':
             print('Result of SNN_community')

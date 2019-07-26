@@ -12,6 +12,7 @@ from sklearn.manifold import Isomap, TSNE
 from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.decomposition import PCA
 import scipy
+from sklearn.neighbors import KDTree, BallTree
 import umap
 from scipy.cluster.hierarchy import linkage, dendrogram, fcluster,inconsistent
 from scipy.cluster.hierarchy import maxRstat,maxinconsts
@@ -326,8 +327,7 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
     p = 2,
     algorithm = 'best', 
     leaf_size=40,
-    memory = Memory(cachedir=None, verbose=0),
-    approx_min_span_tree=True,
+    memory = Memory(cachedir=None, verbose=0)
     #gen_min_span_tree=False,
     #core_dist_n_jobs=4,
     #cluster_selection_method='eom',
@@ -339,8 +339,6 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
         algorithm = hdbscan_dict['algorithm']    
     if 'alpha' in hdbscan_dict.keys():
         alpha = hdbscan_dict['alpha']
-    if 'approx_min_span_tree' in hdbscan_dict.keys():
-        approx_min_span_tree = hdbscan_dict['approx_min_span_tree']
     #if 'gen_min_span_tree' in hdbscan_dict.keys():
         #gen_min_span_tree = hdbscan_dict['gen_min_span_tree']
     if 'leaf_size' in hdbscan_dict.keys():
@@ -356,13 +354,33 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
     if 'p' in hdbscan_dict.keys():
         p = hdbscan_dict['p']
     #['eom','leaf']
-    #if 'cluster_selection_method' in hdbscan_dict.keys():
-        #cluster_selection_method = hdbscan_dict['cluster_selection_method']
+    if 'cluster_selection_method' in hdbscan_dict.keys():
+        cluster_selection_method = hdbscan_dict['cluster_selection_method']
     if 'min_samples' in hdbscan_dict.keys():
         min_samples = int(hdbscan_dict['min_samples'])
     if metric=='minkowski':
         p=2
-    return hdbscan.HDBSCAN(min_cluster_size, min_samples,metric, alpha, p, algorithm,leaf_size,memory=Memory(cachedir=None, verbose=0)).fit(x).labels_
+    if algorithm == 'prims_kdtree':
+        if metric not in KDTree.valid_metrics:
+            print('Cannot use Prim\'s with KDTree for'+str(metric)+', change it to euclidean')
+            metric='euclidean'
+    if algorithm == 'boruvka_kdtree':
+        if metric not in BallTree.valid_metrics:
+            print('Cannot use Boruvka with KDTree for' +str(metric)+', change it to euclidean')
+            metric='euclidean'
+    if algorithm == 'boruvka_balltree':
+        if metric not in BallTree.valid_metrics:
+            print('Cannot use Boruvka with BallTree for' +str(metric)+', change it to euclidean')
+            metric='euclidean'
+    if algorithm == 'boruvka_balltree':
+        if metric not in BallTree.valid_metrics:
+            print('Cannot use Boruvka with BallTree for' +str(metric)+', change it to euclidean')
+            metric='euclidean'
+    if algorithm == 'boruvka_balltree' and metric == 'sokalsneath':
+        cluster_selection_method = 'minkowski'
+        print('metric SokalSneathDistance is not valid for KDTree')
+        #.astype(np.float64) is incase of the buffer dtype mismatch problem
+    return hdbscan.HDBSCAN(min_cluster_size, min_samples,metric, alpha, p, algorithm,leaf_size,memory=Memory(cachedir=None, verbose=0)).fit(x.astype(np.float64)).labels_
     
     
 def plot_co_cluster(co_cluster, save_prefix=None):
