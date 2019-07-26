@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
+from joblib import Memory
 import os
 import re
 import pickle
@@ -182,7 +183,6 @@ def get_clusters_Hierarchy_clustering(x, hier_dict):
     criterionH='inconsistent'
     depth=2
     R=None
-    monocrit=None
     #L_metric can be 'braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’, 
     #‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’,
     # ‘kulsinski’, ‘mahalanobis’, ‘matching’, ‘minkowski’,
@@ -317,9 +317,52 @@ def get_clusters_dbscan_clustering(x,dbscan_dict):
     return DBSCAN(eps, min_samples, metric, metric_params, algorithm, leaf_size, p, n_jobs).fit(x).labels_    
     
     
-    
-    
-    
+def get_clusters_hdbscan_clustering(x,hdbscan_dict):
+    #default value
+    min_cluster_size = 5, 
+    min_samples = 1,
+    metric='euclidean', 
+    alpha = 1.0,
+    p = 2,
+    algorithm = 'best', 
+    leaf_size=40,
+    memory = Memory(cachedir=None, verbose=0),
+    approx_min_span_tree=True,
+    #gen_min_span_tree=False,
+    #core_dist_n_jobs=4,
+    #cluster_selection_method='eom',
+    #allow_single_cluster=False,
+    #prediction_data=False,
+    #match_reference_implementation=False
+    #['best', 'generic', 'prims_kdtree', 'boruvka_kdtree','boruvka_balltree']
+    if 'algorithm' in hdbscan_dict.keys():
+        algorithm = hdbscan_dict['algorithm']    
+    if 'alpha' in hdbscan_dict.keys():
+        alpha = hdbscan_dict['alpha']
+    if 'approx_min_span_tree' in hdbscan_dict.keys():
+        approx_min_span_tree = hdbscan_dict['approx_min_span_tree']
+    #if 'gen_min_span_tree' in hdbscan_dict.keys():
+        #gen_min_span_tree = hdbscan_dict['gen_min_span_tree']
+    if 'leaf_size' in hdbscan_dict.keys():
+        leaf_size = hdbscan_dict['leaf_size']
+    #['cityblock', 'cosine', 'euclidean', 'l1', 'l2', 'manhattan','braycurtis',
+              # 'canberra', 'chebyshev', 'correlation', 'dice', 'hamming', 'jaccard', 
+             #  'kulsinski', 'mahalanobis', 'matching', 'minkowski','rogerstanimoto', 
+             #  'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean']
+    if 'metric' in hdbscan_dict.keys():
+        metric = hdbscan_dict['metric']
+    if 'min_cluster_size' in hdbscan_dict.keys():
+        min_cluster_size = hdbscan_dict['min_cluster_size']        
+    if 'p' in hdbscan_dict.keys():
+        p = hdbscan_dict['p']
+    #['eom','leaf']
+    #if 'cluster_selection_method' in hdbscan_dict.keys():
+        #cluster_selection_method = hdbscan_dict['cluster_selection_method']
+    if 'min_samples' in hdbscan_dict.keys():
+        min_samples = int(hdbscan_dict['min_samples'])
+    if metric=='minkowski':
+        p=2
+    return hdbscan.HDBSCAN(min_cluster_size, min_samples,metric, alpha, p, algorithm,leaf_size,memory=Memory(cachedir=None, verbose=0)).fit(x).labels_
     
     
 def plot_co_cluster(co_cluster, save_prefix=None):
