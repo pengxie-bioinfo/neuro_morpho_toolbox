@@ -185,20 +185,22 @@ def get_clusters_Hierarchy_clustering(x, hier_dict):
     depth=2
     R=None
     #L_metric can be 'braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’, 
-    #‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’,
-    # ‘kulsinski’, ‘mahalanobis’, ‘matching’, ‘minkowski’,
-    #‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, ‘sokalmichener’, 
-    #‘sokalsneath’, ‘sqeuclidean’
+                    #‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’,
+                    # ‘kulsinski’, ‘mahalanobis’, ‘matching’, ‘minkowski’,
+                    #‘rogerstanimoto’, ‘russellrao’, ‘seuclidean’, ‘sokalmichener’, 
+                    #‘sokalsneath’, ‘sqeuclidean’
     #**Note that ‘jensenshannon’,‘yule’may result in a condensed distance matrix which contains infinite value
     if 'L_metric' in hier_dict.keys():
         L_metric = hier_dict['L_metric']
    # L_method can be 'single', 'complete','average','weighted','centroid','median','ward'
     if 'L_method' in hier_dict.keys():
         L_method = hier_dict['L_method']
-    if L_method == 'centroid' or L_method == 'median':
+    if L_method == 'centroid' or L_method == 'median' or L_method == 'ward':
         L_metric = 'euclidean'
+        print('\n')
+        print('\n')
         print('*************Note:**************')
-        print('Method '+str(L_method)+'requires the distance metric to be Euclidean')
+        print('Method '+str(L_method)+' requires the distance metric to be Euclidean')
         
     if 'optimal_ordering' in hier_dict.keys():
         optimal_ordering = hier_dict['optimal_ordering']
@@ -223,18 +225,16 @@ def get_clusters_Hierarchy_clustering(x, hier_dict):
 
     if 'R' in hier_dict.keys():
         R = hier_dict['R']      
-    if criterionH == 'inconsistent':
+    if criterionH == 'inconsistent' or criterionH == 'maxclust_monocrit':
         #The inconsistency matrix to use for the 'inconsistent' criterion. 
         #R is computed if not provided.
         if R is None:
             R = inconsistent(Z, d=depth)
         else:
             R = np.asarray(R, order='c')
-    if np.where(np.isinf(Z),-np.Inf,Z).argmax()>0:
-        print('*************Note:**************')
-        print('For input '+str(hier_dict)+', the condensed distance matrix has infinite values, just use the default value')
-        return fcluster(Z,criterion='inconsistent',t=0.9, depth=2)
-    elif criterionH == 'monocrit':
+    if criterionH == 'monocrit':
+        if R is None:
+            R = inconsistent(Z, d=depth)
         return fcluster(Z,criterion='monocrit',t=t, monocrit=maxRstat(Z, R, 3))
     elif criterionH == 'maxclust_monocrit':
         return fcluster(Z,criterion='maxclust_monocrit',t=t, monocrit= maxinconsts(Z, R))
@@ -328,12 +328,7 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
     algorithm = 'best', 
     leaf_size=40,
     memory = Memory(cachedir=None, verbose=0)
-    #gen_min_span_tree=False,
-    #core_dist_n_jobs=4,
-    #cluster_selection_method='eom',
-    #allow_single_cluster=False,
-    #prediction_data=False,
-    #match_reference_implementation=False
+
     #['best', 'generic', 'prims_kdtree', 'boruvka_kdtree','boruvka_balltree']
     if 'algorithm' in hdbscan_dict.keys():
         algorithm = hdbscan_dict['algorithm']    
