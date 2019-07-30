@@ -9,7 +9,7 @@ setup(name='neuro_morpho_toolbox',
       install_requires=['numpy', 'sklearn', 'scipy', 'pandas', 'SimpleITK',
                         'matplotlib', 'python-igraph', 'seaborn','sparse',
 			'hdbscan','chart-studio','colorlover', 'plotly', 
-			'ipywidgets','umap-learn'
+			'ipywidgets','umap-learn', 'Cython'
                         ],
       test_suite='nose.collector',
       tests_require=['nose', 'nose-cover3']
