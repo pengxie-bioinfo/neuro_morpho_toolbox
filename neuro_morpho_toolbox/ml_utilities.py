@@ -320,62 +320,67 @@ def get_clusters_dbscan_clustering(x,dbscan_dict):
     
 def get_clusters_hdbscan_clustering(x,hdbscan_dict):
     #default value
-    min_cluster_size = 5, 
-    min_samples = 1,
-    metric='euclidean', 
-    alpha = 1.0,
-    p = 2,
-    algorithm = 'best', 
-    leaf_size=40,
-    memory = Memory(cachedir=None, verbose=0)
+    min_cluster_size_value = 5, 
+    min_samples_value = 1,
+    metric_value='euclidean', 
+    alpha_value = 1.0,
+    p_value = 2,
+    algorithm_value = 'best', 
+    leaf_size_value=40,
+   
 
     #['best', 'generic', 'prims_kdtree', 'boruvka_kdtree','boruvka_balltree']
     if 'algorithm' in hdbscan_dict.keys():
-        algorithm = hdbscan_dict['algorithm']    
+        algorithm_value = hdbscan_dict['algorithm']    
     if 'alpha' in hdbscan_dict.keys():
-        alpha = hdbscan_dict['alpha']
+        alpha_value = hdbscan_dict['alpha']
     #if 'gen_min_span_tree' in hdbscan_dict.keys():
         #gen_min_span_tree = hdbscan_dict['gen_min_span_tree']
     if 'leaf_size' in hdbscan_dict.keys():
-        leaf_size = hdbscan_dict['leaf_size']
+        leaf_size_value = hdbscan_dict['leaf_size']
     #['cityblock', 'cosine', 'euclidean', 'l1', 'l2', 'manhattan','braycurtis',
               # 'canberra', 'chebyshev', 'correlation', 'dice', 'hamming', 'jaccard', 
              #  'kulsinski', 'mahalanobis', 'matching', 'minkowski','rogerstanimoto', 
              #  'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean']
     if 'metric' in hdbscan_dict.keys():
-        metric = hdbscan_dict['metric']
+        metric_value = hdbscan_dict['metric']
     if 'min_cluster_size' in hdbscan_dict.keys():
-        min_cluster_size = hdbscan_dict['min_cluster_size']        
+        min_cluster_size_value = hdbscan_dict['min_cluster_size']        
     if 'p' in hdbscan_dict.keys():
-        p = hdbscan_dict['p']
+        p_value = hdbscan_dict['p']
     #['eom','leaf']
     if 'cluster_selection_method' in hdbscan_dict.keys():
-        cluster_selection_method = hdbscan_dict['cluster_selection_method']
+        cluster_selection_method_value = hdbscan_dict['cluster_selection_method']
     if 'min_samples' in hdbscan_dict.keys():
-        min_samples = int(hdbscan_dict['min_samples'])
-    if metric=='minkowski':
-        p=2
-    if algorithm == 'prims_kdtree':
-        if metric not in KDTree.valid_metrics:
-            print('Cannot use Prim\'s with KDTree for'+str(metric)+', change it to euclidean')
-            metric='euclidean'
-    if algorithm == 'boruvka_kdtree':
-        if metric not in BallTree.valid_metrics:
-            print('Cannot use Boruvka with KDTree for' +str(metric)+', change it to euclidean')
-            metric='euclidean'
-    if algorithm == 'boruvka_balltree':
-        if metric not in BallTree.valid_metrics:
-            print('Cannot use Boruvka with BallTree for' +str(metric)+', change it to euclidean')
-            metric='euclidean'
-    if algorithm == 'boruvka_balltree':
-        if metric not in BallTree.valid_metrics:
-            print('Cannot use Boruvka with BallTree for' +str(metric)+', change it to euclidean')
-            metric='euclidean'
-    if algorithm == 'boruvka_balltree' and metric == 'sokalsneath':
-        cluster_selection_method = 'minkowski'
+        min_samples_value = int(hdbscan_dict['min_samples'])
+    if metric_value == 'minkowski':
+        p_value=2
+    if algorithm_value == 'prims_kdtree':
+        if metric_value not in KDTree.valid_metrics:
+            print('Cannot use Prim\'s with KDTree for'+str(metric_value)+', change it to euclidean')
+            metric_value = 'euclidean'
+    if algorithm_value == 'boruvka_kdtree':
+        if metric_value not in BallTree.valid_metrics:
+            print('Cannot use Boruvka with KDTree for' +str(metric_value)+', change it to euclidean')
+            metric_value ='euclidean'
+    if algorithm_value == 'boruvka_balltree':
+        if metric_value not in BallTree.valid_metrics:
+            print('Cannot use Boruvka with BallTree for' +str(metric_value)+', change it to euclidean')
+            metric_value='euclidean'
+    if algorithm_value == 'boruvka_balltree':
+        if metric_value not in BallTree.valid_metrics:
+            print('Cannot use Boruvka with BallTree for' +str(metric_value)+', change it to euclidean')
+            metric_value='euclidean'
+    if algorithm_value == 'boruvka_balltree' and metric_value == 'sokalsneath':
+        cluster_selection_method_value = 'minkowski'
         print('metric SokalSneathDistance is not valid for KDTree')
         #.astype(np.float64) is incase of the buffer dtype mismatch problem
-    return hdbscan.HDBSCAN(min_cluster_size, min_samples,metric, alpha, p, algorithm,leaf_size,memory=Memory(cachedir=None, verbose=0)).fit(x.astype(np.float64)).labels_
+    return hdbscan.HDBSCAN(min_cluster_size = min_cluster_size_value, min_samples = min_samples_value, 
+                           metric = metric_value, alpha = alpha_value, p = p_value, 
+                           algorithm = algorithm_value, leaf_size = leaf_size_value, memory=Memory(location=None), 
+                           approx_min_span_tree=True, gen_min_span_tree=False, core_dist_n_jobs=4, 
+                           cluster_selection_method = cluster_selection_method_value, allow_single_cluster=False, 
+                           prediction_data=False, match_reference_implementation=False).fit(x.astype(np.float64)).labels_
     
     
 def plot_co_cluster(co_cluster, save_prefix=None):
@@ -419,6 +424,5 @@ def plot_co_cluster(co_cluster, save_prefix=None):
     # if save:
     #     g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
     return
-
 
 
