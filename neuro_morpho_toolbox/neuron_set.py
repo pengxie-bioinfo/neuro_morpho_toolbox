@@ -116,6 +116,9 @@ class neuron_set:
                           #        'metric':'euclidean','alpha':None,
                           #        'p': ,'algorithm':'auto', 
                           #        'leaf_size':40, 'p':2}
+
+        methods_allowed = ['SNN_community', 'Hierarchy', 'Kmeans', 'DBSCAN', 'HDBSCAN']
+        assert method in methods_allowed, "Please set 'method' as one of the following: 'SNN_community', 'Hierarchy', 'Kmeans', 'DBSCAN', 'HDBSCAN'"
                      
         if method=='SNN_community':
             print('Result of SNN_community')
