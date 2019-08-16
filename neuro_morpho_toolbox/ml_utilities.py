@@ -327,7 +327,7 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
     p_value = 2,
     algorithm_value = 'best', 
     leaf_size_value=40,
-   
+    cluster_selection_method_value = 'eom'
 
     #['best', 'generic', 'prims_kdtree', 'boruvka_kdtree','boruvka_balltree']
     if 'algorithm' in hdbscan_dict.keys():
