@@ -51,7 +51,7 @@ print("Loading time: %.2f" % (end-start))
 
 
 from .swc import neuron
-from .neuron_features import features, projection_features, soma_features
+from .neuron_features import features, projection_features, soma_features, dendrite_features
 from .neuron_set import neuron_set
 from .utilities import *
 from .ml_utilities import *

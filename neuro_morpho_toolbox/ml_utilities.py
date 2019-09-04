@@ -381,8 +381,62 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
                            approx_min_span_tree=True, gen_min_span_tree=False, core_dist_n_jobs=4, 
                            cluster_selection_method = cluster_selection_method_value, allow_single_cluster=False, 
                            prediction_data=False, match_reference_implementation=False).fit(x.astype(np.float64)).labels_
-    
-    
+
+
+def get_co_cluster(x, cell_names, ratio_resample=0.85, n_refeature=100,
+                   round_resample=1000, knn=3,
+                   algorithm='SNN', parameter_dict={'metric':'minkowski',
+                                                    'method':'FastGreedy'}
+                   ):
+    # Initialization
+    n_cells = x.shape[0]
+    n_features = x.shape[1]
+    co_occur = np.zeros([n_cells, n_cells])
+    co_cluster = np.zeros([n_cells, n_cells])
+    n_resample = int(n_cells*ratio_resample)
+    n_refeature = int(min(n_refeature, n_features))
+    print("Resample size: ", n_resample, n_refeature)
+    # Steps for progress
+    n_step = int(round_resample*0.1)
+
+    # Iterations
+    cur_co_cluster = np.zeros([n_cells, n_cells])
+    diff_co_cluster = []
+    for ct in range(round_resample):
+        sample_lab = list(np.random.choice(np.arange(n_cells), n_resample, replace=False))
+        feature_lab = list(np.random.choice(np.arange(n_features), n_refeature, replace=False))
+        tp = x[sample_lab, :]
+        if algorithm == 'SNN': # Other clustering methods: To be implemented
+            metric = parameter_dict['metric']
+            method = parameter_dict['method']
+            if metric == "precomputed":
+                tp = tp[:, sample_lab]
+            else:
+                tp = tp[:, feature_lab]
+            clustering = get_clusters_SNN_community(tp, knn, metric, method)
+
+        clusters = pd.DataFrame(clustering, index=sample_lab, columns=['cluster'])
+        for i in sample_lab:
+            for j in sample_lab:
+                co_occur[i,j] = co_occur[i,j]+1
+                if clusters.loc[i, 'cluster']==clusters.loc[j, 'cluster']:
+                    co_cluster[i, j] = co_cluster[i, j] + 1
+        diff = cur_co_cluster - (co_cluster+1) / (co_occur+1)
+        diff_co_cluster.append(LA.norm(diff, 'fro'))
+        cur_co_cluster = (co_cluster+1) / (co_occur+1)
+        if ct%n_step ==0:
+            print("Round ", ct+1, diff_co_cluster[-1])
+    co_cluster = pd.DataFrame(cur_co_cluster, index=cell_names, columns=cell_names)
+
+    # Plot 0: Show resample saturation
+#     fig, ax = plt.subplots(1,1, figsize=(7,7))
+#     plt.plot(diff_co_cluster, c=(0,0,0.8,0.5))
+#     plt.yscale('log')
+#     plt.xlabel('Iteration')
+#     plt.ylabel('Fluctuation of Co-clusters')
+#     fig.savefig('../Figure/Resample_saturation.pdf')
+    return co_cluster
+
 def plot_co_cluster(co_cluster, save_prefix=None):
     # Plot 1: Hierarchical clustering (by samples)
 
@@ -401,7 +455,7 @@ def plot_co_cluster(co_cluster, save_prefix=None):
 
     # transforme the 'cyl' column in a categorical variable. It will allow to put one color on each level.
     #     my_color=celltype.loc[d['ivl'], 'Sub_type'].cat.codes
-    my_color = [celltypes_col[CLA.meta_data.loc[i, "Subtype"]] for i in d['ivl']]
+    my_color = [celltypes_col[CLA.meta_data.loc[i, "Subtype"]] for i in d['ivl']]  # replace with a new color map, to be implemented
 
     # Apply the right color to each label
     ax = plt.gca()

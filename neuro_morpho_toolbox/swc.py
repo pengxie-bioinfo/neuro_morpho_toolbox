@@ -146,9 +146,9 @@ class neuron:
 
         hemi_1 = tp[tp.z < midline]
         hemi_2 = tp[tp.z >= midline]
-        for cur_hemi in [hemi_1, hemi_2]:
+        for cur_hemi_id, cur_hemi in zip([1,2], [hemi_1, hemi_2]):
             cur_df = pd.DataFrame({"structure_id": region_used,
-                                   "hemisphere_id": [1] * len(region_used),
+                                   "hemisphere_id": [cur_hemi_id] * len(region_used),
                                    "soma": [0] * len(region_used),
                                    "axon": [0] * len(region_used),
                                    "(basal) dendrite": [0] * len(region_used),

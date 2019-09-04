@@ -22,10 +22,10 @@ class features:
         # Basic filter: remove samples with all zeros
         remove_cells = self.raw_data.index[np.sum(self.raw_data, axis=1)==0].tolist()
         if len(remove_cells) > 0:
-            print("Following cells will be excluded as all values are zeros:")
+            print("All values are zeros for the following cells:")
             for i in remove_cells:
                 print(i)
-            self.raw_data = self.raw_data.drop(remove_cells, axis=0)
+            # self.raw_data = self.raw_data.drop(remove_cells, axis=0)
         return
 
     def neuron_list(self):
@@ -263,4 +263,79 @@ class soma_features(features):
         self.scaled_data = pd.DataFrame(scaled_data,
                                         index=self.raw_data.index,
                                         columns=self.raw_data.columns)
+        return
+
+class dendrite_features(features):
+    def __init__(self):
+        features.__init__(self, "Dendrite")
+        self.scaled_data = pd.DataFrame()
+        return
+
+    # def load_csv_from_path(self, path):
+    #     self.csv_path = path
+    #     self.metadata = pd.DataFrame(columns=['File_name', 'Hemisphere'])
+    #     hemi_dict = {1: initiate_df_dict(), 2: initiate_df_dict()}
+    #     for input_table in sorted(os.listdir(path)):
+    #         df = read_location_table(path, input_table)
+    #         if df is None:
+    #             continue
+    #         cell_name = input_table.replace(".csv", "").replace(".swc", "").replace(".eswc", "")
+    #
+    #         # Metadata
+    #         hemi_id = get_hemisphere(df)
+    #         if np.isnan(hemi_id):
+    #             print(input_table)
+    #             continue
+    #         cur_metadata = pd.DataFrame({'File_name':os.path.join(path, input_table),
+    #                                      'Hemisphere':hemi_id
+    #                                      },
+    #                                     index=[cell_name])
+    #         self.metadata = pd.concat([self.metadata, cur_metadata])
+    #
+    #         # Feature table
+    #         for i in [1,2]:
+    #             hemi_dict[i] = add_new_record(hemi_dict[i], df, i, cell_name)
+    #
+    #     # ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["soma"].columns.tolist()]
+    #     ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
+    #     contra_col = ["contra_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
+    #     axon_location = pd.DataFrame(index=hemi_dict[1]["axon"].index, columns=ipsi_col + contra_col, dtype='float32')
+    #     # Flip the matrix if hemisphere == 2
+    #     for i in range(len(self.metadata)):
+    #         cell = self.metadata.index[i]
+    #         hemi = self.metadata.Hemisphere[i]
+    #         if hemi == 1:
+    #             axon_location.loc[cell] = hemi_dict[1]["axon"].loc[cell].tolist() + \
+    #                                       hemi_dict[2]["axon"].loc[cell].tolist()
+    #         if hemi == 2:
+    #             axon_location.loc[cell] = hemi_dict[2]["axon"].loc[cell].tolist() + \
+    #                                       hemi_dict[1]["axon"].loc[cell].tolist()
+    #     self.add_raw_data(axon_location)
+    #     return
+
+    def load_data_from_neuron_dict(self, neuron_dict):
+        assert type(neuron_dict) == dict, "Error: projection_features.load_data_from_neuron_dict(self, neuron_dict).\nneuron_dict provided is NOT a python dictionary."
+        for cur_name, cur_neuron in neuron_dict.items():
+            assert type(cur_neuron) == neuron, "Error: projection_features.load_data_from_neuron_dict(self, neuron_dict).\nvalue of neuron_dict is NOT a nmt.neuron."
+        region_used = nmt.bs.selected_regions
+        columns = [nmt.bs.level.loc[i, "Abbrevation"] for i in region_used]
+
+        df = pd.DataFrame(columns=columns)
+        # TODO: show progress...
+        for cur_name, cur_neuron in list(neuron_dict.items()):
+            cur_df = cur_neuron.get_region_matrix(annotation=nmt.annotation,
+                                                  brain_structure=nmt.bs,
+                                                  region_used=None)
+            df.loc[cur_name] = (np.sum(cur_df.loc[cur_df["hemisphere_id"] == 1, ["(basal) dendrite", "apical dendrite"]], axis=1) + \
+                                np.sum(cur_df.loc[cur_df["hemisphere_id"] == 2, ["(basal) dendrite", "apical dendrite"]], axis=1)).tolist()
+        self.add_raw_data(df)
+        self.normalize(log=True)
+        return
+
+
+    def normalize(self, log=True):
+        scaled_data = np.array(self.raw_data) / np.sum(self.raw_data, axis=1).values.reshape(-1,1) * 100000
+        if log:
+            scaled_data = np.log(scaled_data+100)
+        self.scaled_data = pd.DataFrame(scaled_data, index=self.raw_data.index, columns=self.raw_data.columns)
         return

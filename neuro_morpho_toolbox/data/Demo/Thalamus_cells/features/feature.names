@@ -1,0 +1,29 @@
+ID
+N_node 
+Soma_surface 
+N_stem 
+f0 
+f1 
+f2 
+Number of Nodes
+Soma Surface
+Number of Stems
+Number of Bifurcatons
+Number of Branches
+Number of Tips
+Overall Width
+Overall Height
+Overall Depth
+Average Diameter
+Total Length
+Total Surface
+Total Volume
+Max Euclidean Distance
+Max Path Distance
+Max Branch Order
+Average Contraction
+Average Fragmentation
+Average Parent-daughter Ratio
+Average Bifurcation Angle Local
+Average Bifurcation Angle Remote
+Hausdorff Dimension

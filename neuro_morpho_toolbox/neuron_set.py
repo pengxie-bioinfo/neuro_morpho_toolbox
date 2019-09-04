@@ -5,7 +5,7 @@ import time
 import os
 from sklearn import metrics
 from scipy.cluster.hierarchy import dendrogram, linkage    
-from neuro_morpho_toolbox import neuron, soma_features, projection_features
+from neuro_morpho_toolbox import neuron, soma_features, projection_features, dendrite_features
 import neuro_morpho_toolbox as nmt
 
 def load_swc_list(swc_path, zyx=False):
@@ -58,6 +58,10 @@ class neuron_set:
         pf = projection_features()
         pf.load_data_from_neuron_dict(self.neurons)
         self.features['projection_features'] = pf
+        print("Getting dendrite features...")
+        df = dendrite_features()
+        df.load_data_from_neuron_dict(self.neurons)
+        self.features['dendrite_features'] = df
         print("Getting metadata...")
         self.metadata['SomaRegion'] = self.features['soma_features'].region.loc[self.names, 'Region']
         hemi_dict = {1:'Left', 2:'Right'}
