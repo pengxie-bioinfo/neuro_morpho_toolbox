@@ -16,6 +16,7 @@ def load_swc_list(swc_path, zyx=False):
     '''
     neurons = {}
     start = time.time()
+    print("number of files under swc_path: %d" % (len(os.listdir(swc_path))))
     for swc_file in sorted(os.listdir(swc_path)):
         if not swc_file.endswith(("swc", "SWC")):
             continue
@@ -48,6 +49,7 @@ class neuron_set:
             return
         print("Loading...")
         self.neurons = load_swc_list(swc_path, zyx)
+        # print(len(self.neurons))
         self.names = list(self.neurons.keys())
         self.metadata = pd.DataFrame(index=self.names)
         print("Finding soma locations...")
