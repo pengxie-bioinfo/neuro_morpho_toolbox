@@ -185,7 +185,58 @@ def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5):
     return fig
 
 
-def qualitative_scatter(x, y, c):
+# def qualitative_scatter(x, y, c):
+#     max_col = 3
+#     subplot_w = 8
+#     subplot_h = 8
+#     feature_list = c.columns.tolist()
+#     subplot_n = len(feature_list)
+#     if subplot_n <= max_col:
+#         n_col = subplot_n
+#         n_row = 1
+#     else:
+#         n_col = max_col
+#         n_row = int(subplot_n / max_col)
+#         if (subplot_n % max_col) != 0:
+#             n_row += 1
+#     fig, ax = plt.subplots(n_row, n_col,
+#                            figsize=(subplot_w * n_col,
+#                                     subplot_h * n_row),
+#                            squeeze=False
+#                            )
+#     ax = ax.reshape(-1)
+#     df = pd.DataFrame({'Dim_1': x, 'Dim_2': y})
+#     df = pd.concat([df, c.copy()], axis=1)
+#     for i, cur_ax in enumerate(ax.tolist()[:subplot_n]):
+#         feature_name = feature_list[i]
+#         ct = df[feature_name].value_counts()
+#         # Control length of legend
+#         if len(ct) > 10:
+#             collapsed_features = ct[7:].index.tolist() + ['unknown', "fiber tracts"]
+#             df.loc[df[feature_name].isin(collapsed_features), feature_name] = "Others"
+#
+#         ct = df[feature_name].value_counts()
+#         hue_order = ct.index.tolist()
+#         if hue_order.count('Others') > 0:
+#             #             hue_order.append(hue_order.pop(hue_order.index('Others')))
+#             hue_order.pop(hue_order.index('Others'))
+#
+#         sns.scatterplot(x='Dim_1', y='Dim_2',
+#                         data=df[df[feature_name] == 'Others'],
+#                         c=(.5, .5, .5),
+#                         alpha=0.25,
+#                         #                         palette='Spectral',
+#                         ax=cur_ax)
+#         sns.scatterplot(x='Dim_1', y='Dim_2',
+#                         hue=feature_name, hue_order=hue_order,
+#                         data=df[df[feature_name] != 'Others'],
+#                         #                         palette='Spectral',
+#                         alpha=0.75,
+#                         ax=cur_ax)
+#     return fig
+
+
+def qualitative_scatter(x, y, c, palette='Spectral', max_colors=10):
     max_col = 3
     subplot_w = 8
     subplot_h = 8
@@ -207,30 +258,30 @@ def qualitative_scatter(x, y, c):
     ax = ax.reshape(-1)
     df = pd.DataFrame({'Dim_1': x, 'Dim_2': y})
     df = pd.concat([df, c.copy()], axis=1)
+    df['is_background'] = 'N'
     for i, cur_ax in enumerate(ax.tolist()[:subplot_n]):
         feature_name = feature_list[i]
         ct = df[feature_name].value_counts()
         # Control length of legend
-        if len(ct) > 10:
-            collapsed_features = ct[12:].index.tolist() + ['unknown', "fiber tracts"]
-            df.loc[df[feature_name].isin(collapsed_features), feature_name] = "Others"
+        if len(ct) > max_colors:
+            collapsed_features = ct[max_colors:].index.tolist() + ['unknown', "fiber tracts"]
+            df.loc[df[feature_name].isin(collapsed_features), feature_name] = "NA"
+            df.loc[df[feature_name].isin(["Others", "NA"]), "is_background"] = "Y"
+
+        # background color
+        if type(palette) == dict:
+            palette['Others'] = (.5, .5, .5)
+            palette['NA'] = (.5, .5, .5)
 
         ct = df[feature_name].value_counts()
-        hue_order = ct.index.tolist()
-        if hue_order.count('Others') > 0:
-            #             hue_order.append(hue_order.pop(hue_order.index('Others')))
-            hue_order.pop(hue_order.index('Others'))
-
+        # hue_order = ct.index.tolist()
         sns.scatterplot(x='Dim_1', y='Dim_2',
-                        data=df[df[feature_name] == 'Others'],
-                        c=(.5, .5, .5),
-                        alpha=0.25,
-                        #                         palette='Spectral',
-                        ax=cur_ax)
-        sns.scatterplot(x='Dim_1', y='Dim_2',
-                        hue=feature_name, hue_order=hue_order,
-                        data=df[df[feature_name] != 'Others'],
-                        #                         palette='Spectral',
-                        alpha=0.75,
+                        hue=feature_name,
+                        data=df,
+                        palette=palette,
+                        alpha=0.9,
+                        size="is_background",
+                        sizes=(41, 71),
+                        style="is_background",
                         ax=cur_ax)
     return fig
