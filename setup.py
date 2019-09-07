@@ -8,7 +8,7 @@ setup(name='neuro_morpho_toolbox',
       packages=['neuro_morpho_toolbox'],
       install_requires=['numpy', 'sklearn', 'scipy', 'pandas', 'SimpleITK',
                         'matplotlib', 'python-igraph', 'seaborn','sparse',
-			'hdbscan','colorlover', 'plotly', 
+			'hdbscan','colorlover', 'plotly', 'retrying',
 			'ipywidgets','umap-learn', 'Cython'
                         ],#,'chart-studio'
       test_suite='nose.collector',
