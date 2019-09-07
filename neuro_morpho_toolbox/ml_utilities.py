@@ -196,11 +196,11 @@ def get_clusters_Hierarchy_clustering(x, hier_dict):
     if 'L_method' in hier_dict.keys():
         L_method = hier_dict['L_method']
     if L_method == 'centroid' or L_method == 'median' or L_method == 'ward':
-        L_metric = 'euclidean'
-        print('\n')
-        print('\n')
-        print('*************Note:**************')
-        print('Method '+str(L_method)+' requires the distance metric to be Euclidean')
+        if L_metric != 'euclidean':
+            L_metric != 'euclidean'
+            print('\n')
+            print('*************Note:**************')
+            print('Method '+str(L_method)+' requires the distance metric to be Euclidean')
         
     if 'optimal_ordering' in hier_dict.keys():
         optimal_ordering = hier_dict['optimal_ordering']
