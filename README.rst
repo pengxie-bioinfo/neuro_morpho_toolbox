@@ -1,10 +1,6 @@
 neuron_morpho_toolbox
 _____________________
 
-To use (with caution), simply do:
-
->>> import neuro_morpho_toolbox
->>> neuro_morpho_toolbox.helloworld()
 
 Installation
 ^^^^^^^^^^^
@@ -20,3 +16,10 @@ cd into the module directory that contains setup.py and run the install:
   If neuro_morpho_toolbox package only shows up in the *conda list*, not the pip list, then you may use the following into the module directory:
 
   >>> pip install neuro-morpho-toolbox
+
+Use
+^^^^^^^^^^^
+To use (with caution), simply do:
+
+>>> import neuro_morpho_toolbox
+>>> neuro_morpho_toolbox.helloworld()
