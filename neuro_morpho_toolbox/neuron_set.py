@@ -5,7 +5,7 @@ import time
 import os
 from sklearn import metrics
 from scipy.cluster.hierarchy import dendrogram, linkage    
-from neuro_morpho_toolbox import neuron, soma_features, projection_features, dendrite_features
+from neuro_morpho_toolbox import neuron, soma_features, projection_features, dendrite_features, lm_dendrite_features, lm_axon_features
 import neuro_morpho_toolbox as nmt
 
 def load_swc_list(swc_path, zyx=False):
@@ -16,7 +16,6 @@ def load_swc_list(swc_path, zyx=False):
     '''
     neurons = {}
     start = time.time()
-    print("number of files under swc_path: %d" % (len(os.listdir(swc_path))))
     for swc_file in sorted(os.listdir(swc_path)):
         if not swc_file.endswith(("swc", "SWC")):
             continue
@@ -35,7 +34,7 @@ def load_swc_list(swc_path, zyx=False):
     return neurons
 
 class neuron_set:
-    def __init__(self, swc_path=None, zyx=False):
+    def __init__(self, swc_path=None,  zyx=False, lm_features_path = None):
         '''
         load all the
         :param path:
@@ -49,7 +48,6 @@ class neuron_set:
             return
         print("Loading...")
         self.neurons = load_swc_list(swc_path, zyx)
-        # print(len(self.neurons))
         self.names = list(self.neurons.keys())
         self.metadata = pd.DataFrame(index=self.names)
         print("Finding soma locations...")
@@ -70,9 +68,7 @@ class neuron_set:
         self.metadata['Hemisphere'] = [hemi_dict[i] for i in self.features['soma_features'].region.loc[self.names, 'Hemisphere'].tolist()]
         self.metadata['CellType'] = self.features['soma_features'].region.loc[self.names, 'Region'] # Initialized as SomaRegion
         self.metadata['Cluster'] = [0]*len(self.metadata)
-
-        return
-
+    
     def ReduceDimPCA(self, feature_set='projection_features'):
         assert feature_set in self.features.keys(), "Invalid feature_set name."
         if feature_set=='projection_features':
@@ -230,5 +226,24 @@ class neuron_set:
         else:
             fig = nmt.qualitative_scatter(x, y, z)
         return fig
-
-
+    
+    def load_lm_features_from_folder(self, lm_features_path=None):
+        '''
+        load L-measure features from all .feature files in a folder(currently supporting dendrite, axon and proximal_axon)
+        '''
+        if lm_features_path is None:
+            return
+        for filename in sorted(os.listdir(lm_features_path)):
+            if not filename.endswith('.features'):
+                continue
+            name = filename.replace('.features', '')
+            # lm dendrite features
+            if name == 'dendrite':
+                if not 'lm_dendrite_features' in self.features.keys():
+                    self.features['lm_dendrite_features'] = lm_dendrite_features()
+                self.features['lm_dendrite_features'].load_data_from_features(lm_features_path + filename)
+            # lm axon/proximal_axon features
+            elif name == 'axon' or name == 'proximal_axon':
+                if not 'lm_axon_features' in self.features.keys():
+                    self.features['lm_axon_features'] = lm_axon_features()
+                self.features['lm_axon_features'].load_data_from_features(lm_features_path + filename)

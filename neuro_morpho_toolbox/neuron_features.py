@@ -339,3 +339,79 @@ class dendrite_features(features):
             scaled_data = np.log(scaled_data+100)
         self.scaled_data = pd.DataFrame(scaled_data, index=self.raw_data.index, columns=self.raw_data.columns)
         return
+
+class lm_dendrite_features(features):
+    def __init__(self):
+        features.__init__(self, "lm_Dendrite")
+        self.raw_data = pd.DataFrame(columns=['Number of Stems', 
+                                              'Overall Width', 
+                                              'Overall Height', 
+                                              'Overall Depth', 
+                                              'Total Length', 
+                                              'Max Euclidean Distance', 
+                                              'Max Path Distance', 
+                                              'Number of Bifurcations', 
+                                              'Number of Branches', 
+                                              'Number of Tips',
+                                              'Max Branch Order', 
+                                              'Average Contraction', 
+                                              'Average Fragmentation',
+                                              'Average Bifurcation Angle Local', 
+                                              'Average Bifurcation Angle Remote', 
+                                              'Hausdorff Dimension'
+                                              ])
+
+    def load_data_from_features(self, path=None):
+        assert type(path) == str, "Invalid Path."
+        assert path.endswith('.features'), "Illegal File Type."
+        self.path = path
+        table = pd.read_csv(path, header=[0], index_col=[0], delimiter="\t").transpose()
+        table.rename(columns={'Number of Bifurcatons':'Number of Bifurcations'}, inplace=True)
+        self.raw_data = table[self.raw_data.columns]
+        self.normalize()
+        return
+    
+    def normalize(self):
+        scaled_data = scale(self.raw_data)
+        self.scaled_data = pd.DataFrame(scaled_data,
+                                        index=self.raw_data.index,
+                                        columns=self.raw_data.columns)
+        return
+
+class lm_axon_features(features):
+    def __init__(self):
+        features.__init__(self, "lm_Axon")
+        self.raw_data = pd.DataFrame(columns=['Number of Stems', 
+                                              'Overall Width', 
+                                              'Overall Height', 
+                                              'Overall Depth', 
+                                              'Total Length', 
+                                              'Max Euclidean Distance', 
+                                              'Max Path Distance', 
+                                              'Number of Bifurcations', 
+                                              'Number of Branches', 
+                                              'Number of Tips',
+                                              'Max Branch Order', 
+                                              'Average Contraction', 
+                                              'Average Fragmentation',
+                                              'Average Bifurcation Angle Local', 
+                                              'Average Bifurcation Angle Remote', 
+                                              'Hausdorff Dimension'
+                                              ])
+
+    def load_data_from_features(self, path=None):
+        assert type(path) == str, "Invalid Path."
+        assert path.endswith('.features'), "Illegal File Type."
+        self.path = path
+        table = pd.read_csv(path, header=[0], index_col=[0], delimiter="\t").transpose()
+        table.rename(columns={'Number of Bifurcatons':'Number of Bifurcations'}, inplace=True)
+        self.raw_data = table[self.raw_data.columns]
+        self.normalize()
+        return
+    
+    def normalize(self):
+        scaled_data = scale(self.raw_data)
+        self.scaled_data = pd.DataFrame(scaled_data,
+                                        index=self.raw_data.index,
+                                        columns=self.raw_data.columns)
+        return
