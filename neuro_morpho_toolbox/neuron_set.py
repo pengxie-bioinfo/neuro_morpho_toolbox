@@ -201,7 +201,7 @@ class neuron_set:
         for feature_name in feature_list:
             tp = self.get_feature_values(feature_name)
             if tp.shape[1]>0:
-                res = pd.concat([res, tp], axis=1)
+                res = pd.concat([res, tp], axis=1, sort=False)
         return res
 
     def FeatureScatter(self, feature_name, map="UMAP"):
