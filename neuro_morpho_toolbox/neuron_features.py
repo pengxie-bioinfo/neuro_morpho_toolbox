@@ -340,35 +340,45 @@ class dendrite_features(features):
         self.scaled_data = pd.DataFrame(scaled_data, index=self.raw_data.index, columns=self.raw_data.columns)
         return
 
+#####################################################
+# L-measure features
+#####################################################
+
+def load_features_file(path, prefix='', feature_names=None):
+    if not os.path.exists(path):
+        return pd.DataFrame()
+    if feature_names is None:
+        feature_names = ['Number of Stems', 
+                    'Overall Width', 
+                    'Overall Height', 
+                    'Overall Depth', 
+                    'Total Length', 
+                    'Max Euclidean Distance', 
+                    'Max Path Distance', 
+                    'Number of Bifurcations', 
+                    'Number of Branches', 
+                    'Number of Tips',
+                    'Max Branch Order', 
+                    'Average Contraction', 
+                    'Average Fragmentation',
+                    'Average Bifurcation Angle Local', 
+                    'Average Bifurcation Angle Remote', 
+                    'Hausdorff Dimension']
+    table = pd.read_csv(path, header=[0], index_col=[0], delimiter="\t").transpose()
+    table.rename(columns={'Number of Bifurcatons':'Number of Bifurcations'}, inplace=True)
+    table = table[feature_names]
+    new_feature_names = [prefix + i.replace(' ', '_') for i in feature_names]
+    table.rename(columns=dict(zip(feature_names, new_feature_names)), inplace=True)
+    return table
+
 class lm_dendrite_features(features):
     def __init__(self):
         features.__init__(self, "lm_Dendrite")
-        self.raw_data = pd.DataFrame(columns=['Number of Stems', 
-                                              'Overall Width', 
-                                              'Overall Height', 
-                                              'Overall Depth', 
-                                              'Total Length', 
-                                              'Max Euclidean Distance', 
-                                              'Max Path Distance', 
-                                              'Number of Bifurcations', 
-                                              'Number of Branches', 
-                                              'Number of Tips',
-                                              'Max Branch Order', 
-                                              'Average Contraction', 
-                                              'Average Fragmentation',
-                                              'Average Bifurcation Angle Local', 
-                                              'Average Bifurcation Angle Remote', 
-                                              'Hausdorff Dimension'
-                                              ])
 
-    def load_data_from_features(self, path=None):
-        assert type(path) == str, "Invalid Path."
-        assert path.endswith('.features'), "Illegal File Type."
-        self.path = path
-        table = pd.read_csv(path, header=[0], index_col=[0], delimiter="\t").transpose()
-        table.rename(columns={'Number of Bifurcatons':'Number of Bifurcations'}, inplace=True)
-        self.raw_data = table[self.raw_data.columns]
-        self.normalize()
+    def load_from_folder(self, folder):
+        self.raw_data = load_features_file(os.path.join(folder, 'dendrite.features'), 'D_')
+        if self.raw_data.shape[0] > 0:
+            self.normalize()
         return
     
     def normalize(self):
@@ -381,33 +391,12 @@ class lm_dendrite_features(features):
 class lm_axon_features(features):
     def __init__(self):
         features.__init__(self, "lm_Axon")
-        self.raw_data = pd.DataFrame(columns=['Number of Stems', 
-                                              'Overall Width', 
-                                              'Overall Height', 
-                                              'Overall Depth', 
-                                              'Total Length', 
-                                              'Max Euclidean Distance', 
-                                              'Max Path Distance', 
-                                              'Number of Bifurcations', 
-                                              'Number of Branches', 
-                                              'Number of Tips',
-                                              'Max Branch Order', 
-                                              'Average Contraction', 
-                                              'Average Fragmentation',
-                                              'Average Bifurcation Angle Local', 
-                                              'Average Bifurcation Angle Remote', 
-                                              'Hausdorff Dimension'
-                                              ])
 
-    def load_data_from_features(self, path=None):
-        # Zuohan, please complete: loading and combining both axon.features and proximal_axon.features
-        assert type(path) == str, "Invalid Path."
-        assert path.endswith('.features'), "Illegal File Type."
-        self.path = path
-        table = pd.read_csv(path, header=[0], index_col=[0], delimiter="\t").transpose()
-        table.rename(columns={'Number of Bifurcatons':'Number of Bifurcations'}, inplace=True)
-        self.raw_data = table[self.raw_data.columns]
-        self.normalize()
+    def load_from_folder(self, folder=None):
+        self.raw_data = pd.concat([load_features_file(os.path.join(folder, 'axon.features'), 'A_'), 
+                                   load_features_file(os.path.join(folder, 'proximal_axon.features'), 'AL_')], axis=1)
+        if self.raw_data.shape[0] > 0:
+            self.normalize()
         return
     
     def normalize(self):
