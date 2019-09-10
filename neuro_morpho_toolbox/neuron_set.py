@@ -58,16 +58,19 @@ class neuron_set:
         pf = projection_features()
         pf.load_data_from_neuron_dict(self.neurons)
         self.features['projection_features'] = pf
-        print("Getting dendrite features...")
-        df = dendrite_features()
-        df.load_data_from_neuron_dict(self.neurons)
-        self.features['dendrite_features'] = df
+        # print("Getting dendrite features...")
+        # df = dendrite_features()
+        # df.load_data_from_neuron_dict(self.neurons)
+        # self.features['dendrite_features'] = df
         print("Getting metadata...")
         self.metadata['SomaRegion'] = self.features['soma_features'].region.loc[self.names, 'Region']
         hemi_dict = {1:'Left', 2:'Right'}
         self.metadata['Hemisphere'] = [hemi_dict[i] for i in self.features['soma_features'].region.loc[self.names, 'Hemisphere'].tolist()]
         self.metadata['CellType'] = self.features['soma_features'].region.loc[self.names, 'Region'] # Initialized as SomaRegion
         self.metadata['Cluster'] = [0]*len(self.metadata)
+
+        # Zuohan, please complete this: if lm_features_path is not None: load lm features...
+        return
     
     def ReduceDimPCA(self, feature_set='projection_features'):
         assert feature_set in self.features.keys(), "Invalid feature_set name."
@@ -247,3 +250,4 @@ class neuron_set:
                 if not 'lm_axon_features' in self.features.keys():
                     self.features['lm_axon_features'] = lm_axon_features()
                 self.features['lm_axon_features'].load_data_from_features(lm_features_path + filename)
+        return

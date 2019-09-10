@@ -400,6 +400,7 @@ class lm_axon_features(features):
                                               ])
 
     def load_data_from_features(self, path=None):
+        # Zuohan, please complete: loading and combining both axon.features and proximal_axon.features
         assert type(path) == str, "Invalid Path."
         assert path.endswith('.features'), "Illegal File Type."
         self.path = path
