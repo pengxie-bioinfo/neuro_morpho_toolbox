@@ -4,6 +4,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from .swc import neuron
+import colorlover as cl
 
 #import chart_studio.plotly as py
 import plotly.offline as po
@@ -18,6 +19,58 @@ u_color_by = ['SingleCell', 'Celltype', 'Subtype', 'cluster', 'nblast']
 view_idx = dict(zip(u_views, [0, 1, 2]))
 view_axis = dict(zip(u_views, ["X", "Y", "Z"]))
 
+####################################################################################
+# Color settings
+####################################################################################
+bupu = cl.scales['9']['seq']['BuPu']
+greens = cl.scales['9']['seq']['Greens']
+set2 = cl.scales['7']['qual']['Set2']
+spectral = cl.scales['9']['div']['Spectral']
+paired = cl.scales['10']['qual']['Paired']
+mpl_colors = []
+for i in range(9):
+    tp = []
+    for j in list(mpl.colors.to_rgb("C" + str(i))):
+        tp.append(str(int(j * 255)))
+    tp = ", ".join(tp)
+    tp = "rgb(" + tp + ")"
+    mpl_colors.append(tp)
+my_palette_dict = {"bupu":bupu,
+                   "greens":greens,
+                   "set2":set2,
+                   "spectral":spectral,
+                   "paired":paired,
+                   "matplotlib":mpl_colors
+                   }
+
+def rgb_to_list(rgb_str):
+    tp = rgb_str.replace("rgb(", "").replace("rgba(", "").replace(")", "")
+    res = [float(i) / 255 for i in tp.split(", ")]
+    return res
+
+
+def get_group_colors(metadata, group_by="Celltype", palette="paired", return_str=False):
+    assert group_by in metadata.columns.tolist(), "Invalid group_by value."
+    assert palette in list(my_palette_dict.keys()), "Invalid palette name."
+    u_groups = sorted(list(set(metadata[group_by])))
+    color_list = cl.to_rgb(cl.interp(my_palette_dict[palette], len(u_groups)))
+    if not return_str:
+        color_list = [rgb_to_list(i) for i in color_list]
+    group_colors = dict(zip(u_groups, color_list))
+    if "Others" in u_groups:
+        if not return_str:
+            group_colors["Others"] = rgb_to_list('rgb(128, 128, 128)')
+        else:
+            group_colors["Others"] = 'rgb(128, 128, 128)'
+    return group_colors
+
+def get_singlecell_colors(cell_list, palette="paired", return_str=False):
+    u_cells = list(set(cell_list))
+    color_list = cl.to_rgb(cl.interp(my_palette_dict[palette], len(u_cells)))
+    if not return_str:
+        color_list = [rgb_to_list(i) for i in color_list]
+    group_colors = dict(zip(u_cells, color_list))
+    return group_colors
 
 # SWC plotting
 def get_layout(axis_x, axis_y, range_x, range_y, x_expand_ratio=1.1):
@@ -133,13 +186,6 @@ def plot_swc_plotly(swc_name, metadata, segment_dict={}, flip=False, z_size=None
                   # "layout": get_layout(axis_x, axis_y, range_x, range_y, 1.1)
                   })
     return lines
-
-# Plotting utilities
-def rgb_to_list(rgb_str):
-    rgb_str = rgb_str.replace(" ", "")
-    tp = rgb_str.replace("rgb(","").replace("rgba(","").replace(")","")
-    res = [float(i)/255 for i in tp.split(",")]
-    return res
 
 
 def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5):
@@ -274,9 +320,10 @@ def qualitative_scatter(x, y, c, palette='Spectral', max_colors=10):
             palette['NA'] = (.5, .5, .5)
 
         ct = df[feature_name].value_counts()
-        # hue_order = ct.index.tolist()
+        hue_order = ct.index.tolist()
         sns.scatterplot(x='Dim_1', y='Dim_2',
                         hue=feature_name,
+                        hue_order = hue_order,
                         data=df,
                         palette=palette,
                         alpha=0.9,
@@ -285,3 +332,96 @@ def qualitative_scatter(x, y, c, palette='Spectral', max_colors=10):
                         style="is_background",
                         ax=cur_ax)
     return fig
+
+
+def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
+                view="Horizontal",
+                margin=0.05, dpi=80, enlarge=1.5, alpha=0.5, ax=None,
+                color="classical", flip_soma=True):
+    assert view in u_views, " ".join((["option 'view_by' should be one of the following: "] + u_views))
+
+    # Background image
+    nda = np.empty([0,0])
+    xspace = 0
+    yspace = 0
+    if view.lower() == "coronal":
+        nda = (np.max(ccf_annotation.array, axis=0) > 0)  # 3D -> 2D projection
+        xspace = ccf_annotation.space['z']
+        yspace = ccf_annotation.space['y']
+    if view.lower() == "horizontal":
+        nda = (np.max(ccf_annotation.array, axis=1) > 0)
+        xspace = ccf_annotation.space['z']
+        yspace = ccf_annotation.space['x']
+    if view.lower() == "sagittal":
+        nda = (np.max(ccf_annotation.array, axis=2) > 0).transpose()
+        xspace = ccf_annotation.space['y']
+        yspace = ccf_annotation.space['x']
+
+    xsize = nda.shape[1]
+    ysize = nda.shape[0]
+
+    # Figure settings
+    if ax is None:
+        figsize = (1 + margin) * xsize * enlarge / dpi, (1 + margin) * ysize * enlarge / dpi
+        fig = plt.figure(figsize=figsize, dpi=dpi)
+        # Make the axis the right size...
+        ax = fig.add_axes([margin, margin, 1 - 2 * margin, 1 - 2 * margin])
+
+    extent = (0, xsize * xspace, ysize * yspace, 0)
+    ax.imshow(nda, cmap="Greys", alpha=0.2, extent=extent)
+
+    # Plot cells
+    linewidth = 0.7
+    alpha = 0.7
+
+    single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
+    celltype_color_dict = get_group_colors(metadata=metadata, group_by="Celltype", palette="paired", return_str=False)
+    cluster_color_dict = get_group_colors(metadata=metadata, group_by="cluster", palette="paired", return_str=False)
+    for cellname in cell_list:
+        Xe, Ye, Ze, Te, Le = swc_to_edges(neurons_dict[cellname].swc)
+        # axis_name = view_axis[view]
+        tp = pd.DataFrame(columns=['heng', 'zong', 'Te'])
+        if view.lower() == "coronal":
+            tp = pd.DataFrame({'heng': Ze, 'zong': Ye, 'Te': Te})
+        if view.lower() == "horizontal":
+            tp = pd.DataFrame({'heng': Ze, 'zong': Xe, 'Te': Te})
+        if view.lower() == "sagittal":
+            tp = pd.DataFrame({'heng': Xe, 'zong': Ye, 'Te': Te})
+            flip_soma = False
+
+        soma_color = single_cell_color_dict[cellname]
+        if color.lower() == "classical":
+            ax.plot(tp.heng[tp.Te == 2], tp.zong[tp.Te == 2], c='r', linewidth=linewidth, alpha=alpha)
+            ax.plot(tp.heng[tp.Te == 3], tp.zong[tp.Te == 3], c='b', linewidth=linewidth, alpha=alpha)
+            ax.plot(tp.heng[tp.Te == 4], tp.zong[tp.Te == 4], c='magenta', linewidth=linewidth, alpha=alpha)
+            soma_color = 'black'
+        if color.lower() == "single_cell":
+            soma_color = single_cell_color_dict[cellname]
+            ax.plot(tp.heng, tp.zong,
+                    c=single_cell_color_dict[cellname],
+                    linewidth=linewidth, alpha=alpha)
+        if color.lower() == "celltype":
+            soma_color = celltype_color_dict[metadata.loc[cellname, "Celltype"]]
+            ax.plot(tp.heng, tp.zong,
+                    c=celltype_color_dict[metadata.loc[cellname, "Celltype"]],
+                    linewidth=linewidth, alpha=alpha)
+        if color.lower() == "cluster":
+            soma_color = cluster_color_dict[metadata.loc[cellname, "cluster"]]
+            ax.plot(tp.heng, tp.zong,
+                    c=cluster_color_dict[metadata.loc[cellname, "cluster"]],
+                    linewidth=linewidth, alpha=alpha)
+        tp = tp[(tp["Te"] == 1)]
+        if flip_soma:
+            ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
+                       tp.zong[tp["Te"] == 1].iloc[0],
+                       c=[soma_color],
+                       marker="*",
+                       s=30)
+        else:
+            ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
+                       tp.zong[tp["Te"] == 1].iloc[0],
+                       c=[soma_color],
+                       marker="*",
+                       s=30)
+    return
+
