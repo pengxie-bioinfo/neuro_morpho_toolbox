@@ -230,24 +230,12 @@ class neuron_set:
             fig = nmt.qualitative_scatter(x, y, z)
         return fig
     
-    def load_lm_features_from_folder(self, lm_features_path=None):
+    def load_lm_features_from_folder(self, folder_path):
         '''
         load L-measure features from all .feature files in a folder(currently supporting dendrite, axon and proximal_axon)
         '''
-        if lm_features_path is None:
-            return
-        for filename in sorted(os.listdir(lm_features_path)):
-            if not filename.endswith('.features'):
-                continue
-            name = filename.replace('.features', '')
-            # lm dendrite features
-            if name == 'dendrite':
-                if not 'lm_dendrite_features' in self.features.keys():
-                    self.features['lm_dendrite_features'] = lm_dendrite_features()
-                self.features['lm_dendrite_features'].load_data_from_features(lm_features_path + filename)
-            # lm axon/proximal_axon features
-            elif name == 'axon' or name == 'proximal_axon':
-                if not 'lm_axon_features' in self.features.keys():
-                    self.features['lm_axon_features'] = lm_axon_features()
-                self.features['lm_axon_features'].load_data_from_features(lm_features_path + filename)
+        self.features['lm_dendrite_features'] = lm_dendrite_features()
+        self.features['lm_dendrite_features'].load_from_folder(folder_path)
+        self.features['lm_axon_features'] = lm_axon_features()
+        self.features['lm_axon_features'].load_from_folder(folder_path)
         return
