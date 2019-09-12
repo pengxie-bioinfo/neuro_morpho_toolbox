@@ -349,21 +349,21 @@ def load_features_file(path, prefix='', feature_names=None):
         return pd.DataFrame()
     if feature_names is None:
         feature_names = ['Number of Stems', 
-                    'Overall Width', 
-                    'Overall Height', 
-                    'Overall Depth', 
-                    'Total Length', 
-                    'Max Euclidean Distance', 
-                    'Max Path Distance', 
-                    'Number of Bifurcations', 
-                    'Number of Branches', 
-                    'Number of Tips',
-                    'Max Branch Order', 
-                    'Average Contraction', 
-                    'Average Fragmentation',
-                    'Average Bifurcation Angle Local', 
-                    'Average Bifurcation Angle Remote', 
-                    'Hausdorff Dimension']
+                         'Overall Width', 
+                         'Overall Height', 
+                         'Overall Depth', 
+                         'Total Length', 
+                         'Max Euclidean Distance', 
+                         'Max Path Distance', 
+                         'Number of Bifurcations', 
+                         'Number of Branches', 
+                         'Number of Tips',
+                         'Max Branch Order', 
+                         'Average Contraction', 
+                         'Average Fragmentation',
+                         'Average Bifurcation Angle Local', 
+                         'Average Bifurcation Angle Remote', 
+                         'Hausdorff Dimension']
     table = pd.read_csv(path, header=[0], index_col=[0], delimiter="\t").transpose()
     table.rename(columns={'Number of Bifurcatons':'Number of Bifurcations'}, inplace=True)
     table = table[feature_names]
@@ -387,6 +387,12 @@ class lm_dendrite_features(features):
                                         index=self.raw_data.index,
                                         columns=self.raw_data.columns)
         return
+    
+    def rearrange_by_id(self, ids):
+        self.raw_data = self.raw_data.loc[ids]
+        print(''.join(['Warning: Neuron {ID} missing fields {fields}.\n'.
+              format(ID=index, fields=', '.join(self.raw_data.columns[np.isnan(row)])) 
+              if (np.isnan(row)).any() else '' for index, row in self.raw_data.iterrows()]))
 
 class lm_axon_features(features):
     def __init__(self):
@@ -405,3 +411,9 @@ class lm_axon_features(features):
                                         index=self.raw_data.index,
                                         columns=self.raw_data.columns)
         return
+
+    def rearrange_by_id(self, ids):
+        self.raw_data = self.raw_data.loc[ids]
+        print(''.join(['Warning: Neuron {ID} missing fields {fields}.\n'.
+              format(ID=index, fields=', '.join(self.raw_data.columns[np.isnan(row)])) 
+              if (np.isnan(row)).any() else '' for index, row in self.raw_data.iterrows()]))

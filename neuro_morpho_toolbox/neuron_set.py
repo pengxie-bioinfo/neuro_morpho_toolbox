@@ -236,6 +236,8 @@ class neuron_set:
         '''
         self.features['lm_dendrite_features'] = lm_dendrite_features()
         self.features['lm_dendrite_features'].load_from_folder(folder_path)
+        self.features['lm_dendrite_features'].rearrange_by_id(self.names)
         self.features['lm_axon_features'] = lm_axon_features()
         self.features['lm_axon_features'].load_from_folder(folder_path)
+        self.features['lm_axon_features'].rearrange_by_id(self.names)
         return
