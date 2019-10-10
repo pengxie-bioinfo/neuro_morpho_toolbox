@@ -14,7 +14,8 @@ import seaborn as sns
 
 # Global variables
 u_views = ['Coronal', 'Horizontal', 'Sagittal']
-u_color_by = ['SingleCell', 'CellType', 'Subtype', 'cluster', 'nblast']
+u_color_by = ['SingleCell', 'CellType', 'Subtype', 'Cluster', 'nblast']
+
 
 view_idx = dict(zip(u_views, [0, 1, 2]))
 view_axis = dict(zip(u_views, ["X", "Y", "Z"]))
@@ -376,7 +377,7 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
 
     single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
     celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="paired", return_str=False)
-    cluster_color_dict = get_group_colors(metadata=metadata, group_by="cluster", palette="paired", return_str=False)
+    cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
     for cellname in cell_list:
         Xe, Ye, Ze, Te, Le = swc_to_edges(neurons_dict[cellname].swc)
         # axis_name = view_axis[view]
