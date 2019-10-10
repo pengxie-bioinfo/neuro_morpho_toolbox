@@ -14,7 +14,7 @@ import seaborn as sns
 
 # Global variables
 u_views = ['Coronal', 'Horizontal', 'Sagittal']
-u_color_by = ['SingleCell', 'Celltype', 'Subtype', 'cluster', 'nblast']
+u_color_by = ['SingleCell', 'CellType', 'Subtype', 'cluster', 'nblast']
 
 view_idx = dict(zip(u_views, [0, 1, 2]))
 view_axis = dict(zip(u_views, ["X", "Y", "Z"]))
@@ -49,7 +49,7 @@ def rgb_to_list(rgb_str):
     return res
 
 
-def get_group_colors(metadata, group_by="Celltype", palette="paired", return_str=False):
+def get_group_colors(metadata, group_by="CellType", palette="paired", return_str=False):
     assert group_by in metadata.columns.tolist(), "Invalid group_by value."
     assert palette in list(my_palette_dict.keys()), "Invalid palette name."
     u_groups = sorted(list(set(metadata[group_by])))
@@ -375,7 +375,7 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     alpha = 0.7
 
     single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
-    celltype_color_dict = get_group_colors(metadata=metadata, group_by="Celltype", palette="paired", return_str=False)
+    celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="paired", return_str=False)
     cluster_color_dict = get_group_colors(metadata=metadata, group_by="cluster", palette="paired", return_str=False)
     for cellname in cell_list:
         Xe, Ye, Ze, Te, Le = swc_to_edges(neurons_dict[cellname].swc)
@@ -400,10 +400,10 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
             ax.plot(tp.heng, tp.zong,
                     c=single_cell_color_dict[cellname],
                     linewidth=linewidth, alpha=alpha)
-        if color.lower() == "celltype":
-            soma_color = celltype_color_dict[metadata.loc[cellname, "Celltype"]]
+        if color.lower() == "cellType":
+            soma_color = celltype_color_dict[metadata.loc[cellname, "CellType"]]
             ax.plot(tp.heng, tp.zong,
-                    c=celltype_color_dict[metadata.loc[cellname, "Celltype"]],
+                    c=celltype_color_dict[metadata.loc[cellname, "CellType"]],
                     linewidth=linewidth, alpha=alpha)
         if color.lower() == "cluster":
             soma_color = cluster_color_dict[metadata.loc[cellname, "cluster"]]
