@@ -377,7 +377,6 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
     if color.lower() == "soma":
         print('Illustrating soma locations inside a brain from '+view.lower()+' view...')
-        ii=0
         for cellname in cell_list:
             Xe, Ye, Ze, Te, Le = soma_to_edges(neurons_dict[cellname].swc)
             # axis_name = view_axis[view]
@@ -401,10 +400,7 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
                            tp.zong[tp["Te"] == 1].iloc[0],
                            c=[soma_color],
                            marker="*",
-                           s=30)
-            ii=ii+1
-            print('Now have finished '+str(ii/len(cell_list)))
-            
+                           s=30)           
         return
     single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
     celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="paired", return_str=False)
