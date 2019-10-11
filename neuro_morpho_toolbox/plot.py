@@ -374,10 +374,43 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     # Plot cells
     linewidth = 0.7
     alpha = 0.7
-
+    single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
+    if color.lower() == "soma":
+        print('Illustrating soma locations inside a brain from '+view.lower()+' view...')
+        ii=0
+        for cellname in cell_list:
+            Xe, Ye, Ze, Te, Le = soma_to_edges(neurons_dict[cellname].swc)
+            # axis_name = view_axis[view]
+            tp = pd.DataFrame(columns=['heng', 'zong', 'Te'])
+            if view.lower() == "coronal":
+                tp = pd.DataFrame({'heng': Ze, 'zong': Ye, 'Te': Te})
+            if view.lower() == "horizontal":
+                tp = pd.DataFrame({'heng': Ze, 'zong': Xe, 'Te': Te})
+            if view.lower() == "sagittal":
+                tp = pd.DataFrame({'heng': Xe, 'zong': Ye, 'Te': Te})
+                flip_soma = False
+            soma_color = single_cell_color_dict[cellname]
+            if flip_soma:
+                ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
+                           tp.zong[tp["Te"] == 1].iloc[0],
+                           c=[soma_color],
+                           marker="*",
+                           s=30)
+            else:
+                ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
+                           tp.zong[tp["Te"] == 1].iloc[0],
+                           c=[soma_color],
+                           marker="*",
+                           s=30)
+            ii=ii+1
+            print('Now have finished '+str(ii/len(cell_list)))
+            
+        return
     single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
     celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="paired", return_str=False)
     cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
+    
+    
     for cellname in cell_list:
         Xe, Ye, Ze, Te, Le = swc_to_edges(neurons_dict[cellname].swc)
         # axis_name = view_axis[view]
@@ -426,3 +459,20 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
                        s=30)
     return
 
+def soma_to_edges(swc):
+    '''
+    :param swc: a dataframe from the attribute of the neuron object (see ./swc.py neuron.swc).
+    :return: a list of node coordinates and attributes for the convenience of plotting
+    '''
+    Xe = []
+    Ye = []
+    Ze = []
+    Te = []
+    Le = []
+    if swc[swc.type==1].shape[0]>0:
+        somaDF = swc[swc.type==1].copy()
+        Xe = Xe + [somaDF.x.iloc[0] ]
+        Ye = Ye + [somaDF.y.iloc[0] ]
+        Ze = Ze + [somaDF.z.iloc[0] ]    
+        Te = Te + [1]
+    return [Xe, Ye, Ze, Te, Le]
