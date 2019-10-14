@@ -283,7 +283,7 @@ def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5):
 #     return fig
 
 
-def qualitative_scatter(x, y, c, palette='Spectral', max_colors=10):
+def qualitative_scatter(x, y, c, palette='Spectral', max_colors=25):
     max_col = 3
     subplot_w = 8
     subplot_h = 8
@@ -329,7 +329,7 @@ def qualitative_scatter(x, y, c, palette='Spectral', max_colors=10):
                         palette=palette,
                         alpha=0.9,
                         size="is_background",
-                        sizes=(41, 71),
+                        sizes=(15, 71),
                         style="is_background",
                         ax=cur_ax)
     return fig
