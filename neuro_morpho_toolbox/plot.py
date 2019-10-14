@@ -23,11 +23,11 @@ view_axis = dict(zip(u_views, ["X", "Y", "Z"]))
 ####################################################################################
 # Color settings
 ####################################################################################
-bupu = cl.scales['9']['seq']['BuPu']
-greens = cl.scales['9']['seq']['Greens']
-set2 = cl.scales['7']['qual']['Set2']
-spectral = cl.scales['9']['div']['Spectral']
-paired = cl.scales['10']['qual']['Paired']
+bupu = cl.scales['9']['seq']['BuPu']           
+greens = cl.scales['9']['seq']['Greens']        
+set2 = cl.scales['7']['qual']['Set2']           
+spectral = cl.scales['9']['div']['Spectral']   
+paired = cl.scales['10']['qual']['Paired']     
 mpl_colors = []
 for i in range(9):
     tp = []
@@ -375,8 +375,10 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     linewidth = 0.7
     alpha = 0.7
     single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
-    if color.lower() == "soma":
-        print('Illustrating soma locations inside a brain from '+view.lower()+' view...')
+    cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
+    
+    if color.lower() == "soma" or color.lower() == "majorsoma":
+        print('Illustrating soma locations inside a brain from '+view.lower()+' view:')
         for cellname in cell_list:
             Xe, Ye, Ze, Te, Le = soma_to_edges(neurons_dict[cellname].swc)
             # axis_name = view_axis[view]
@@ -388,20 +390,25 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
             if view.lower() == "sagittal":
                 tp = pd.DataFrame({'heng': Xe, 'zong': Ye, 'Te': Te})
                 flip_soma = False
-            soma_color = single_cell_color_dict[cellname]
+            if color.lower() == "soma":
+                soma_color = single_cell_color_dict[cellname]
+            else:
+                
+                soma_color = cluster_color_dict[metadata.loc[cellname, "Cluster"]]
             if flip_soma:
                 ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
                            tp.zong[tp["Te"] == 1].iloc[0],
                            c=[soma_color],
-                           marker="*",
+                           marker="o",
                            s=30)
             else:
                 ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
                            tp.zong[tp["Te"] == 1].iloc[0],
                            c=[soma_color],
-                           marker="*",
-                           s=30)           
+                           marker="o",
+                           s=30)     
         return
+    
     single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
     celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="paired", return_str=False)
     cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
@@ -436,9 +443,9 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
                     c=celltype_color_dict[metadata.loc[cellname, "CellType"]],
                     linewidth=linewidth, alpha=alpha)
         if color.lower() == "cluster":
-            soma_color = cluster_color_dict[metadata.loc[cellname, "cluster"]]
+            soma_color = cluster_color_dict[metadata.loc[cellname, "Cluster"]]
             ax.plot(tp.heng, tp.zong,
-                    c=cluster_color_dict[metadata.loc[cellname, "cluster"]],
+                    c=cluster_color_dict[metadata.loc[cellname, "Cluster"]],
                     linewidth=linewidth, alpha=alpha)
         tp = tp[(tp["Te"] == 1)]
         if flip_soma:
@@ -454,7 +461,6 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
                        marker="*",
                        s=30)
     return
-
 def soma_to_edges(swc):
     '''
     :param swc: a dataframe from the attribute of the neuron object (see ./swc.py neuron.swc).
@@ -467,8 +473,8 @@ def soma_to_edges(swc):
     Le = []
     if swc[swc.type==1].shape[0]>0:
         somaDF = swc[swc.type==1].copy()
-        Xe = Xe + [somaDF.x.iloc[0] ]
-        Ye = Ye + [somaDF.y.iloc[0] ]
-        Ze = Ze + [somaDF.z.iloc[0] ]    
+        Xe = Xe + [somaDF.x.iloc[0]]
+        Ye = Ye + [somaDF.y.iloc[0]]
+        Ze = Ze + [somaDF.z.iloc[0]]    
         Te = Te + [1]
     return [Xe, Ye, Ze, Te, Le]
