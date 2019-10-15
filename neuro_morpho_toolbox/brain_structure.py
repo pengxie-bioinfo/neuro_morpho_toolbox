@@ -15,7 +15,7 @@ class brain_structure:
             for j in range(df.shape[1]):
                 if df.iloc[i, j] is None:
                     df.iloc[i, j] = np.nan
-        df.columns = ["Abbrevation"] + [i for i in range(1, df.shape[1])]
+        df.columns = ["Abbreviation"] + [i for i in range(1, df.shape[1])]
         df_isnull = df.isnull()
 
         # Get levels of each row
@@ -28,7 +28,7 @@ class brain_structure:
                     description.append(df.iloc[i, j])
                     break
         MAXLEVEL = np.max(level)
-        level = pd.DataFrame({'level': level, 'Abbrevation': df.Abbrevation.tolist(), 'Description': description},
+        level = pd.DataFrame({'level': level, 'Abbreviation': df.Abbreviation.tolist(), 'Description': description},
                              index=df.index)
 
         # Drop redundant columns
@@ -66,7 +66,7 @@ class brain_structure:
     def get_selected_regions(self, input_file):
         brain_levels = pd.read_excel(input_file,
                                      usecols=[1, 2, 3, 5], index_col=0,
-                                     names=['', 'Description', 'Abbrevation', 'level']
+                                     names=['', 'Description', 'Abbreviation', 'level']
                                      )
         self.selected_regions = brain_levels.index.tolist()
         self.dict_to_selected = {}
@@ -77,8 +77,8 @@ class brain_structure:
         return
 
     def name_to_id(self, region_name):
-        # region_name can be either abbrevation (checked first) or description
-        tp = self.level[self.level.Abbrevation == region_name]
+        # region_name can be either Abbreviation (checked first) or description
+        tp = self.level[self.level.Abbreviation == region_name]
         if len(tp) != 0:
             return tp.index[0]
         tp = self.level[self.level.Description == region_name]
