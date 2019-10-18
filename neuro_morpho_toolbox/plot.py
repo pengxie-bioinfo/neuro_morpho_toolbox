@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from .swc import neuron
 import colorlover as cl
-
+import time
 #import chart_studio.plotly as py
 import plotly.offline as po
 import plotly.graph_objs as go
@@ -413,8 +413,12 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="paired", return_str=False)
     cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
     
-    
+    start_sum= time.time()
+    i_p = 0
     for cellname in cell_list:
+        start_sub = time.time()
+        i_p=i_p+1
+        print("Processing progress: %.2f" % (i_p/len(cell_list)))
         Xe, Ye, Ze, Te, Le = swc_to_edges(neurons_dict[cellname].swc)
         # axis_name = view_axis[view]
         tp = pd.DataFrame(columns=['heng', 'zong', 'Te'])
@@ -460,6 +464,10 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
                        c=[soma_color],
                        marker="*",
                        s=30)
+        end_sub = time.time()
+        print("Single cell's loading time: %.2f" % (end_sub-start_sub))        
+    end_sum = time.time()
+    print("Total loading time: %.2f" % (end_sum-start_sum))        
     return
 def soma_to_edges(swc):
     '''
