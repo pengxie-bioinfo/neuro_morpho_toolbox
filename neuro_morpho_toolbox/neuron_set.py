@@ -163,7 +163,7 @@ class neuron_set:
             print('Result of HDBSCAN')
             cur_clusters = nmt.get_clusters_hdbscan_clustering(self.UMAP, karg_dict)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]                         
-        self.get_cluster_metric()
+        #self.get_cluster_metric()
         return            
         # TODO: other clustering methods...
     def get_cluster_metric(self):
