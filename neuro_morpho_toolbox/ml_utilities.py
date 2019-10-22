@@ -259,8 +259,6 @@ def get_clusters_kmeans_clustering(x,  kmeans_dict):
     algorithm='auto'
     if 'n_clusters' in kmeans_dict.keys():
         n_clusters = kmeans_dict['n_clusters']    
-    if 'algorithm' in kmeans_dict.keys():
-        algorithm = kmeans_dict['algorithm']
     if 'n_init' in kmeans_dict.keys():
         n_init = kmeans_dict['n_init']
     if 'init' in kmeans_dict.keys():
