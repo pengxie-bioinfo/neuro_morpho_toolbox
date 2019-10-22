@@ -180,10 +180,11 @@ def get_clusters_Hierarchy_clustering(x, hier_dict):
     #default value
     L_method='single'
     L_metric='euclidean'  
-    t=0.9
+    t = 0.9
     criterionH='inconsistent'
-    depth=2
-    R=None
+    depth = 2
+    R = None
+    colR = 3
     #L_metric can be 'braycurtis’, ‘canberra’, ‘chebyshev’, ‘cityblock’, 
                     #‘correlation’, ‘cosine’, ‘dice’, ‘euclidean’, ‘hamming’, ‘jaccard’,
                     # ‘kulsinski’, ‘mahalanobis’, ‘matching’, ‘minkowski’,
@@ -235,7 +236,8 @@ def get_clusters_Hierarchy_clustering(x, hier_dict):
     if criterionH == 'monocrit':
         if R is None:
             R = inconsistent(Z, d=depth)
-        return fcluster(Z,criterion='monocrit',t=t, monocrit=maxRstat(Z, R, 3))
+            #colR  is the column of 'R' to use as the statistic
+        return fcluster(Z,criterion='monocrit',t=t, monocrit=maxRstat(Z, R, colR ))
     elif criterionH == 'maxclust_monocrit':
         return fcluster(Z,criterion='maxclust_monocrit',t=t, monocrit= maxinconsts(Z, R))
     else:
