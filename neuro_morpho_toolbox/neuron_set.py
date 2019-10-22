@@ -126,7 +126,7 @@ class neuron_set:
         assert method in methods_allowed, "Please set 'method' as one of the following: 'SNN_community', 'Hierarchy', 'Kmeans', 'DBSCAN', 'HDBSCAN'"
                      
         if method=='SNN_community':
-            print('Result of SNN_community')
+            print('Result of SNN_community Clustering')
             if 'knn' in karg_dict.keys():
                 knn = karg_dict['knn']
             else:
@@ -144,23 +144,23 @@ class neuron_set:
             
         #karg_dict={'L_method':'single','L_metric':'euclidean'.'t':0.9,'criterionH':'inconsistent', depth=2, R=None, monocrit=None}
         if method =='Hierarchy':
-            print('Result of Hierarchy CLustering')
+            print('Result of Hierarchy Clustering')
             cur_clusters = nmt.get_clusters_Hierarchy_clustering(self.UMAP, karg_dict)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]        
             
                                 
         if method =='Kmeans':
-            print('Result of Kmeans')
+            print('Result of Kmeans Clustering')
             cur_clusters = nmt.get_clusters_kmeans_clustering(self.UMAP, karg_dict)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]    
             
         if method =='DBSCAN':
-            print('Result of DBSCAN')
+            print('Result of DBSCAN Clustering')
             cur_clusters = nmt.get_clusters_dbscan_clustering(self.UMAP, karg_dict)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]             
 
         if method =='HDBSCAN':
-            print('Result of HDBSCAN')
+            print('Result of HDBSCAN Clustering')
             cur_clusters = nmt.get_clusters_hdbscan_clustering(self.UMAP, karg_dict)
             self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]                         
         #self.get_cluster_metric()
