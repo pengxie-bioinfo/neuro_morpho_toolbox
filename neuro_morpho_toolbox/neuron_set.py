@@ -110,7 +110,7 @@ class neuron_set:
                           #        'precompute_distances':'auto', 
                           #        'verbose':0, 'random_state':None, 
                           #        'copy_x': True, 
-                           #       'n_jobs':None, 'algorithm':'auto'}
+                           #       'n_jobs':12, 'algorithm':'auto'}
                     #dbscan_dict={'eps':0.5, 
                          #         'min_samples':5, 
                           #        'metric':'euclidean','metric_params':None,

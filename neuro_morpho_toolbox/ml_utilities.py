@@ -259,8 +259,6 @@ def get_clusters_kmeans_clustering(x,  kmeans_dict):
     algorithm='auto'
     if 'n_clusters' in kmeans_dict.keys():
         n_clusters = kmeans_dict['n_clusters']    
-    if 'algorithm' in kmeans_dict.keys():
-        algorithm = kmeans_dict['algorithm']
     if 'n_init' in kmeans_dict.keys():
         n_init = kmeans_dict['n_init']
     if 'init' in kmeans_dict.keys():
@@ -340,10 +338,7 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
         #gen_min_span_tree = hdbscan_dict['gen_min_span_tree']
     if 'leaf_size' in hdbscan_dict.keys():
         leaf_size_value = hdbscan_dict['leaf_size']
-    #['cityblock', 'cosine', 'euclidean', 'l1', 'l2', 'manhattan','braycurtis',
-              # 'canberra', 'chebyshev', 'correlation', 'dice', 'hamming', 'jaccard', 
-             #  'kulsinski', 'mahalanobis', 'matching', 'minkowski','rogerstanimoto', 
-             #  'russellrao', 'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean']
+
     if 'metric' in hdbscan_dict.keys():
         metric_value = hdbscan_dict['metric']
     if 'min_cluster_size' in hdbscan_dict.keys():

@@ -30,7 +30,7 @@ class brain_structure:
         MAXLEVEL = np.max(level)
         level = pd.DataFrame({'level': level, 'Abbreviation': df.Abbreviation.tolist(), 'Description': description},
                              index=df.index)
-
+        
         # Drop redundant columns
         df = df.iloc[:, :(MAXLEVEL + 2)]  # The last column will contain only NaN
         df_isnull = df.isnull()
@@ -87,7 +87,13 @@ class brain_structure:
         print("Cannot find any regions named %s." % region_name)
         return -1
 
-
+    def id_to_name(self, region_ID):
+        # region_name can be either Abbreviation (checked first) or description
+        if region_ID in self.level.index.tolist():
+            return self.level.loc[region_ID,'Abbreviation']
+        else:
+            print("Cannot find any regions with ID %s." % region_ID)
+        
 
 
 
