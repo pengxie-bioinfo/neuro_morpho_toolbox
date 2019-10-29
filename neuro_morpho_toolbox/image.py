@@ -35,5 +35,37 @@ class image:
                                      self.size["z"] * self.space["z"],
                                      ]
                                     ))
+    # input_M is an 3D array, the value at each point is the ID of specific region
+    # path is the destination to store the output
+    # flipF indicates whether illustrating half part of the result or to illustrate the full result. It does not influce the saving result.
+    def writeNRRD(input_M, IDlist, path, flipF = True):
+        assert type(IDlist) ==list, "Please using list to input the interested regionID"
+        folder = os.path.exists(path)
+        if not folder:         
+            os.makedirs(path)  
+        data = np.zeros(input_M.shape)
+        for iterID in IDlist:
+            data[input_M==iterID]=1
+        filename = str(path)+ '/'
+        for iterID in IDlist:
+            filename = filename + str(iterID)
+            filename = filename + '_'
+        filename = filename +'.nrrd'
+        itkimage = sitk.GetImageFromArray(data, isVector=False)
+        sitk.WriteImage(itkimage, filename, True) 
+        co_1,co_2,co_3 = np.where(data ==1)
+        if flipF:
+            co_1 = co_1[co_3<=nmt.annotation.size['z']//2]
+            co_2 = co_2[co_3<=nmt.annotation.size['z']//2]
+            co_3 = co_3[co_3<=nmt.annotation.size['z']//2]
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection="3d")
+        # Plot defining corner points
+        ax.plot(co_1, co_2,co_3, "y.")
+        # Make axis label
+        for i in ["x", "y", "z"]:
+            eval("ax.set_{:s}label('{:s}')".format(i, i))
+        plt.show()
+
 
 
