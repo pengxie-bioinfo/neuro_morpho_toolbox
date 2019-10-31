@@ -479,6 +479,8 @@ def plot_co_cluster(co_cluster, save_prefix=None):
     return
 
 
+from sklearn import metrics
+from random import randrange
 def pickCLUSTERpara(method,selected_list):
     if len(selected_list) >0:
         print('Will calculate ARI for '+ str(len(selected_list) ) + ' neurons')
@@ -682,20 +684,19 @@ def pickCLUSTERpara(method,selected_list):
         result_hdbscan.set_index('idx',inplace=True)       
         result_DF = result_hdbscan.copy()
     if method.lower() == 'snn':
-        metric_list = [ 'euclidean','minkowski', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurtis', 'canberra',
-                       'chebyshev','correlation','dice', 'hamming', 'jaccard','kulsinski', 'matching', 
-                       'rogerstanimoto', 'russellrao','sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule']
+        metric_list = ['sqeuclidean','euclidean','minkowski', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurtis',
+                       'canberra','chebyshev']
         snn_dict = {'knn':5, 'metric':'minkowski','method':'FastGreedy'}
         result_snn= pd.DataFrame(columns = colname)
-        for knn_iter in range(2,30):
-            snn_dict.update(knn = knn_iter)
+        for knn_iter in range(3,30):
+            snn_dict.update(knn =knn_iter)
             for metric_idx in metric_list:
                 snn_dict.update(metric = metric_idx)
-                _ = ns. get_clusters(method = 'SNN_community',karg_dict = snn_dict)
+                _ = ns. get_clusters(method='SNN_community',karg_dict=snn_dict)
                 tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
                                                                           ns.metadata.loc[selected_list,'Cluster'])
                 tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(snn_dict)]).T.copy()
-                tempDF.columns = colname
+                tempDF.columns=colname
                 print(str(snn_dict))
                 result_snn = result_snn.append(tempDF)
         idx_snn = ['SNN'+str(x) for x in range(result_snn.shape[0])]    
@@ -703,3 +704,4 @@ def pickCLUSTERpara(method,selected_list):
         result_snn.set_index('idx',inplace=True)  
         result_DF = result_snn.copy()
     return result_DF.copy()
+    
