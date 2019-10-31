@@ -688,15 +688,14 @@ def pickCLUSTERpara(method,selected_list):
         snn_dict = {'knn':5, 'metric':'minkowski','method':'FastGreedy'}
         result_snn= pd.DataFrame(columns = colname)
         for knn_iter in range(2,30):
-            snn_dict.update(knn =knn_iter)
+            snn_dict.update(knn = knn_iter)
             for metric_idx in metric_list:
                 snn_dict.update(metric = metric_idx)
-                _ = ns. get_clusters(method='SNN_community',karg_dict={'knn':5,'metric':'minkowski', 
-                                                                       'method':'FastGreedy'})
+                _ = ns. get_clusters(method = 'SNN_community',karg_dict = snn_dict)
                 tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
                                                                           ns.metadata.loc[selected_list,'Cluster'])
                 tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(snn_dict)]).T.copy()
-                tempDF.columns=colname
+                tempDF.columns = colname
                 print(str(snn_dict))
                 result_snn = result_snn.append(tempDF)
         idx_snn = ['SNN'+str(x) for x in range(result_snn.shape[0])]    
