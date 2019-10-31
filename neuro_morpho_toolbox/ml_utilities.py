@@ -479,11 +479,13 @@ def plot_co_cluster(co_cluster, save_prefix=None):
     return
 
 
-def pickCLUSTERpara(method):
+def pickCLUSTERpara(method,selected_list):
+    if len(selected_list) >0:
+        print('Will calculate ARI for '+ str(len(selected_list) ) + ' neurons')
     result_DF = pd.DataFrame()
     method_list = ['kmeans','snn','hdbscan','hierarchy','dbscan']
     assert method in method_list, "Should be one of "+str(method_list)
-    colname = ['ClusterINFO','NumCluster','parameter']
+    colname = ['ARI','NumCluster','parameter']
     if method.lower() == 'hierarchy':
         #%% Store the result of Hierarchy
         result_hier = pd.DataFrame(columns = colname)
@@ -492,15 +494,16 @@ def pickCLUSTERpara(method):
                        'dice', 'euclidean', 'hamming', 'jaccard', 'kulsinski', 
                        'mahalanobis', 'matching','minkowski','rogerstanimoto', 'russellrao',
                        'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean']
-        #linkage using 'yule' and 'jensenshannon' may result in a condensed distance matrix must contain only finite values.
 
         criterionH_list=['inconsistent','distance','maxclust','monocrit','maxclust_monocrit']
 
-        hier_dict={'L_method':'single', 'L_metric':'euclidean','criterionH':'inconsistent', 'depth':2,'R':None,'t':0.9,'optimal_ordering':False,'colR':3}
+        hier_dict={'L_method':'single', 'L_metric':'euclidean','criterionH':'inconsistent', 'depth':2,'R':None,
+                   't':0.9,'optimal_ordering':False,'colR':3}
         for L_methodidx in L_method_list:
             hier_dict.update(L_method = L_methodidx)
             for L_metricidx in L_metric_list:
                 hier_dict.update(L_metric = L_metricidx )
+                # so far the parameter to generate the linkage array is set
                 if L_methodidx == 'centroid' or L_methodidx == 'median' or L_methodidx == 'ward':
                     if L_metricidx != 'euclidean':
                         continue         
@@ -513,7 +516,11 @@ def pickCLUSTERpara(method):
                                 for depth_iter in range(2,16):
                                     hier_dict.update(depth = depth_iter) 
                                     _ = ns. get_clusters(method='Hierarchy',karg_dict=hier_dict)
-                                    tempDF = pd.DataFrame([str(list(ns.metadata.groupby('Cluster'))), 
+                                    if len(selected_list)==0:
+                                        selected_list = ns.metadata.index.tolist()
+                                    tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
+                                                                          ns.metadata.loc[selected_list,'Cluster'])
+                                    tempDF = pd.DataFrame([tempARI, 
                                                            len(list(ns.metadata.groupby('Cluster'))),
                                                            str(hier_dict)]).T.copy()
                                     tempDF.columns=colname
@@ -521,7 +528,9 @@ def pickCLUSTERpara(method):
                                     result_hier = result_hier.append(tempDF) 
                             elif criterionidx == 'distance':
                                 _ = ns. get_clusters(method='Hierarchy',karg_dict=hier_dict)
-                                tempDF = pd.DataFrame([str(list(ns.metadata.groupby('Cluster'))), 
+                                tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
+                                                                          ns.metadata.loc[selected_list,'Cluster'])
+                                tempDF = pd.DataFrame([tempARI, 
                                                        len(list(ns.metadata.groupby('Cluster'))),
                                                        str(hier_dict)]).T.copy()
                                 tempDF.columns=colname
@@ -531,7 +540,9 @@ def pickCLUSTERpara(method):
                         for t_iter in  range(20,51): 
                             hier_dict.update(t = t_iter) 
                             _ = ns. get_clusters(method='Hierarchy',karg_dict=hier_dict)
-                            tempDF = pd.DataFrame([str(list(ns.metadata.groupby('Cluster'))), 
+                            tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
+                                                                          ns.metadata.loc[selected_list,'Cluster'])
+                            tempDF = pd.DataFrame([tempARI, 
                                                    len(list(ns.metadata.groupby('Cluster'))),
                                                    str(hier_dict)]).T.copy()
                             tempDF.columns=colname
@@ -552,7 +563,6 @@ def pickCLUSTERpara(method):
                        'dice', 'euclidean', 'hamming', 'jaccard', 'kulsinski', 
                        'mahalanobis', 'matching','minkowski','rogerstanimoto', 'russellrao',
                        'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean']
-        #linkage using 'yule' and 'jensenshannon' may result in a condensed distance matrix must contain only finite values.
         criterionH_list='inconsistent','distance','maxclust','monocrit','maxclust_monocrit'
         kmeans_dict={'n_clusters':20, 'init':'k-means++', 'n_init':10, 'max_iter':300, 'tol':0.0001,
                      'precompute_distances':'auto', 'verbose':0, 'random_state':None,'copy_x': True,
@@ -565,14 +575,17 @@ def pickCLUSTERpara(method):
                     kmeans_dict.update(precompute_distances = precompute_distances_idx )
                     for n_clustersidx in range(3,45):
                         kmeans_dict.update(n_clusters = n_clustersidx)     
-                        #Number of time the k-means algorithm will be run with different centroid seeds. The final results will be the best output of n_init consecutive runs in terms of inertia.
                         for n_initidx in range(7,15):
                             kmeans_dict.update(n_init = n_initidx) 
                             for tol_idx in np.exp(-np.arange(2,4,0.2)):
                                 kmeans_dict.update(tol = tol_idx) 
                                 print(kmeans_dict)
                                 _ = ns. get_clusters(method='Kmeans',karg_dict=kmeans_dict)
-                                tempDF = pd.DataFrame([str(list(ns.metadata.groupby('Cluster'))), len(list(ns.metadata.groupby('Cluster'))),str(kmeans_dict)]).T.copy()
+                                tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
+                                                                          ns.metadata.loc[selected_list,'Cluster'])
+                                tempDF = pd.DataFrame([tempARI, 
+                                                       len(list(ns.metadata.groupby('Cluster'))),
+                                                       str(kmeans_dict)]).T.copy()
                                 tempDF.columns=colname
                                 print(str(kmeans_dict))
                                 result_kmeans = result_kmeans.append(tempDF)         
@@ -584,6 +597,7 @@ def pickCLUSTERpara(method):
     if method.lower() == 'dbscan':
         result_dbscan = pd.DataFrame(columns = colname)
         algorithm_list = ['auto','ball_tree', 'kd_tree', 'brute']# 
+         #
         metriclist = [ 'braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation','euclidean', 'cosine',
                       'dice','hamming', 'jaccard', 'kulsinski', 'matching','minkowski','rogerstanimoto','russellrao','sokalmichener', 'sokalsneath']
         dbscan_dict={'eps':20, 'min_samples':5, 'metric':'euclidean','metric_params':None, 'algorithm':'auto', 
@@ -613,7 +627,9 @@ def pickCLUSTERpara(method):
                         for leaf_size_iter in range(25,35):
                             dbscan_dict.update(leaf_size = leaf_size_iter)
                             _ = ns. get_clusters(method='DBSCAN',karg_dict=dbscan_dict)
-                            tempDF = pd.DataFrame([str(list(ns.metadata.groupby('Cluster'))), len(list(ns.metadata.groupby('Cluster'))),str(dbscan_dict)]).T.copy()
+                            tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
+                                                                          ns.metadata.loc[selected_list,'Cluster'])
+                            tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(dbscan_dict)]).T.copy()
                             tempDF.columns=colname
                             print(str(dbscan_dict))
                             result_dbscan = result_dbscan.append(tempDF)        
@@ -654,7 +670,9 @@ def pickCLUSTERpara(method):
                             hdbscan_dict.update(min_samples = min_samples_iter)
                             #print(hdbscan_dict)
                             _ = ns. get_clusters(method='HDBSCAN',karg_dict=hdbscan_dict)
-                            tempDF = pd.DataFrame([str(list(ns.metadata.groupby('Cluster'))), len(list(ns.metadata.groupby('Cluster'))),str(hdbscan_dict)]).T.copy()
+                            tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
+                                                                          ns.metadata.loc[selected_list,'Cluster'])
+                            tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(hdbscan_dict)]).T.copy()
                             tempDF.columns = colname
                             print(str(hdbscan_dict))
                             result_hdbscan = result_hdbscan.append(tempDF)     
@@ -664,16 +682,25 @@ def pickCLUSTERpara(method):
         result_hdbscan.set_index('idx',inplace=True)       
         result_DF = result_hdbscan.copy()
     if method.lower() == 'snn':
+        metric_list = [ 'euclidean','minkowski', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurtis', 'canberra',
+                       'chebyshev','correlation','dice', 'hamming', 'jaccard','kulsinski', 'matching', 
+                       'rogerstanimoto', 'russellrao','sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule']
         snn_dict = {'knn':5, 'metric':'minkowski','method':'FastGreedy'}
         result_snn= pd.DataFrame(columns = colname)
-        _ = ns. get_clusters(method='SNN_community',
-                             karg_dict={'knn':5,
-                                        'metric':'minkowski',
-                                        'method':'FastGreedy'})
-        tempDF = pd.DataFrame([str(list(ns.metadata.groupby('Cluster'))), len(list(ns.metadata.groupby('Cluster'))),str(snn_dict)]).T.copy()
-        tempDF.columns=colname
-        print(str(snn_dict))
-        result_snn = result_snn.append(tempDF)
+        for knn_iter in range(2,30):
+            snn_dict.update(knn =knn_iter)
+            for metric_idx in metric_list:
+                snn_dict.update(metric = metric_idx)
+                _ = ns. get_clusters(method='SNN_community',karg_dict={'knn':5,'metric':'minkowski', 
+                                                                       'method':'FastGreedy'})
+                tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
+                                                                          ns.metadata.loc[selected_list,'Cluster'])
+                tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(snn_dict)]).T.copy()
+                tempDF.columns=colname
+                print(str(snn_dict))
+                result_snn = result_snn.append(tempDF)
+        idx_snn = ['SNN'+str(x) for x in range(result_snn.shape[0])]    
+        result_snn['idx'] = idx_snn
+        result_snn.set_index('idx',inplace=True)  
         result_DF = result_snn.copy()
     return result_DF.copy()
-    
