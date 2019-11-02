@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
+from scipy.spatial import distance
 from joblib import Memory
 import os
 import re
@@ -24,6 +25,8 @@ import matplotlib.cm as cm
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.stats import mannwhitneyu
 import hdbscan
+import time
+import neuro_morpho_toolbox as nmt
 # from pysankey import sankey
 
 from sklearn.cluster import AgglomerativeClustering, KMeans, DBSCAN, SpectralClustering, Birch
@@ -722,6 +725,7 @@ def disCal(SOMA_raw,Contour_01,Array_ID, near_n, flipF = True):
             scaledDF.loc[idx,'SqEuclidean'] = 'unknown'
             scaledDF.loc[idx,'min_Euclidean'] = 0.
             scaledDF.loc[idx,'mean_Euclidean'] = 0.
+            scaledDF.loc[idx,'Region'] = 'unknown'
             continue
         Mask_temp = np.multiply(Array_ID == tempID,Contour_01)#Contour for this tempID
         co_1_temp,co_2_temp,co_3_temp = np.where( Mask_temp >0)
@@ -733,6 +737,7 @@ def disCal(SOMA_raw,Contour_01,Array_ID, near_n, flipF = True):
         scaledDF.loc[idx,'mean_Euclidean'] = np.mean(zs)
         if i_p%10 ==0:
             print('Load progress: %.5f'% (i_p/scaledDF.shape[0]))
+        scaledDF.loc[idx,'Region'] = nmt.bs.id_to_name(tempID)
     end = time.time()
     print("Total loading time: %.2f" % (end-start))
     scaledDF = scaledDF.fillna(str([0]))
