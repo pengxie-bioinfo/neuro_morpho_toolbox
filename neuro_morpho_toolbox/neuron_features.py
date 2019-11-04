@@ -129,9 +129,9 @@ class projection_features(features):
             for i in [1,2]:
                 hemi_dict[i] = add_new_record(hemi_dict[i], df, i, cell_name)
 
-        # ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["soma"].columns.tolist()]
-        ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
-        contra_col = ["contra_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
+        # ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbreviation"] for i in hemi_dict[1]["soma"].columns.tolist()]
+        ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbreviation"] for i in hemi_dict[1]["axon"].columns.tolist()]
+        contra_col = ["contra_" + nmt.bs.level.loc[i, "Abbreviation"] for i in hemi_dict[1]["axon"].columns.tolist()]
         axon_location = pd.DataFrame(index=hemi_dict[1]["axon"].index, columns=ipsi_col + contra_col, dtype='float32')
         # Flip the matrix if hemisphere == 2
         for i in range(len(self.metadata)):
@@ -151,8 +151,8 @@ class projection_features(features):
         for cur_name, cur_neuron in neuron_dict.items():
             assert type(cur_neuron) == neuron, "Error: projection_features.load_data_from_neuron_dict(self, neuron_dict).\nvalue of neuron_dict is NOT a nmt.neuron."
         region_used = nmt.bs.selected_regions
-        columns = ["ipsi_"+nmt.bs.level.loc[i, "Abbrevation"] for i in region_used] + \
-                  ["contra_"+nmt.bs.level.loc[i, "Abbrevation"] for i in region_used]
+        columns = ["ipsi_"+nmt.bs.level.loc[i, "Abbreviation"] for i in region_used] + \
+                  ["contra_"+nmt.bs.level.loc[i, "Abbreviation"] for i in region_used]
 
         df = pd.DataFrame(columns=columns)
         # TODO: show progress...
@@ -211,7 +211,7 @@ class soma_features(features):
             structure_id = nmt.annotation.array[scale_data[0], scale_data[1], scale_data[2]]
             if structure_id in nmt.bs.dict_to_selected.keys():
                 structure_id = nmt.bs.dict_to_selected[structure_id]
-                cur_region = nmt.bs.level.loc[structure_id, "Abbrevation"]
+                cur_region = nmt.bs.level.loc[structure_id, "Abbreviation"]
             else:
                 cur_region = "unknown"
             cur_region = pd.DataFrame({"Hemisphere":[cur_hemi],
@@ -252,7 +252,7 @@ class soma_features(features):
                 cur_hemi = 2
             structure_id = nmt.annotation.array[scale_data[0], scale_data[1], scale_data[2]]
             if structure_id in nmt.bs.level.index.tolist():
-                cur_region = nmt.bs.level.loc[structure_id, "Abbrevation"]
+                cur_region = nmt.bs.level.loc[structure_id, "Abbreviation"]
             else:
                 cur_region = "unknown"
             cur_region = pd.DataFrame({"Hemisphere":[cur_hemi], "Region":[cur_region]}, index=[cell_name])
@@ -296,9 +296,9 @@ class dendrite_features(features):
     #         for i in [1,2]:
     #             hemi_dict[i] = add_new_record(hemi_dict[i], df, i, cell_name)
     #
-    #     # ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["soma"].columns.tolist()]
-    #     ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
-    #     contra_col = ["contra_" + nmt.bs.level.loc[i, "Abbrevation"] for i in hemi_dict[1]["axon"].columns.tolist()]
+    #     # ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbreviation"] for i in hemi_dict[1]["soma"].columns.tolist()]
+    #     ipsi_col = ["ipsi_" + nmt.bs.level.loc[i, "Abbreviation"] for i in hemi_dict[1]["axon"].columns.tolist()]
+    #     contra_col = ["contra_" + nmt.bs.level.loc[i, "Abbreviation"] for i in hemi_dict[1]["axon"].columns.tolist()]
     #     axon_location = pd.DataFrame(index=hemi_dict[1]["axon"].index, columns=ipsi_col + contra_col, dtype='float32')
     #     # Flip the matrix if hemisphere == 2
     #     for i in range(len(self.metadata)):
@@ -318,7 +318,7 @@ class dendrite_features(features):
         for cur_name, cur_neuron in neuron_dict.items():
             assert type(cur_neuron) == neuron, "Error: projection_features.load_data_from_neuron_dict(self, neuron_dict).\nvalue of neuron_dict is NOT a nmt.neuron."
         region_used = nmt.bs.selected_regions
-        columns = [nmt.bs.level.loc[i, "Abbrevation"] for i in region_used]
+        columns = [nmt.bs.level.loc[i, "Abbreviation"] for i in region_used]
 
         df = pd.DataFrame(columns=columns)
         # TODO: show progress...

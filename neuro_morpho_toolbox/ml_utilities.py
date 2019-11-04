@@ -175,7 +175,12 @@ def get_clusters_SNN_community(x, knn=3, metric='minkowski', method='FastGreedy'
     '''
     # print('Time elapsed:\t', '{:.2e}'.format(timer() - stamp))
     # TODO: other community detection methods...
-    return (g.community_fastgreedy(weights='weights').as_clustering().membership)
+    if method == 'FastGreedy':
+        return (g.community_fastgreedy(weights='weights').as_clustering().membership)
+    elif method == "Louvain":
+        return (g.community_multilevel(weights='weights', return_levels=False).membership)
+    else:
+        return
 
 
 def get_clusters_Hierarchy_clustering(x, hier_dict):  
@@ -436,47 +441,47 @@ def get_co_cluster(x, cell_names, ratio_resample=0.85, n_refeature=100,
 #     fig.savefig('../Figure/Resample_saturation.pdf')
     return co_cluster
 
-def plot_co_cluster(co_cluster, save_prefix=None):
-    # Plot 1: Hierarchical clustering (by samples)
-
-    Z_sample = linkage(co_cluster, 'ward')
-    #     Z_sample = linkage(scipy.spatial.distance.squareform(1-co_cluster), 'ward')
-
-    thres = 10
-    fig, ax = plt.subplots(1, 1, figsize=(20, 8))
-    d = dendrogram(Z_sample, labels=co_cluster.index, leaf_rotation=90, leaf_font_size=10,
-                   orientation="top", color_threshold=None,
-                   )
-    # plt.axhline(y=thres, c='grey', lw=1, linestyle='dashed')
-    plt.title('Hierarchical Clustering Dendrogram')
-    plt.xlabel('sample index')
-    plt.ylabel('distance (Ward)')
-
-    # transforme the 'cyl' column in a categorical variable. It will allow to put one color on each level.
-    #     my_color=celltype.loc[d['ivl'], 'Sub_type'].cat.codes
-    my_color = [celltypes_col[CLA.meta_data.loc[i, "Subtype"]] for i in d['ivl']]  # replace with a new color map, to be implemented
-
-    # Apply the right color to each label
-    ax = plt.gca()
-    xlbls = ax.get_xmajorticklabels()
-    num = -1
-    for lbl in xlbls:
-        num += 1
-        lbl.set_color(my_color[num])
-    # if not save_prefix is None:
-    #     fig.savefig("../Figure/Dendrogram_AllNeurons_Resample.pdf")
-
-    # Plot 2: Heatmap
-    col_colors = pd.DataFrame({'Type': [celltypes_col[i] for i in CLA.meta_data["Subtype"]]},
-                              index=CLA.meta_data.index)
-    col_colors = col_colors.loc[co_cluster.index]
-    g = sns.clustermap(co_cluster, linecolor='white',
-                       row_colors=col_colors, col_colors=col_colors,
-                       row_linkage=Z_sample, col_linkage=Z_sample,
-                       annot=False, figsize=(12, 12))
-    # if save:
-    #     g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
-    return
+# def plot_co_cluster(co_cluster, save_prefix=None):
+#     # Plot 1: Hierarchical clustering (by samples)
+#
+#     Z_sample = linkage(co_cluster, 'ward')
+#     #     Z_sample = linkage(scipy.spatial.distance.squareform(1-co_cluster), 'ward')
+#
+#     thres = 10
+#     fig, ax = plt.subplots(1, 1, figsize=(20, 8))
+#     d = dendrogram(Z_sample, labels=co_cluster.index, leaf_rotation=90, leaf_font_size=10,
+#                    orientation="top", color_threshold=None,
+#                    )
+#     # plt.axhline(y=thres, c='grey', lw=1, linestyle='dashed')
+#     plt.title('Hierarchical Clustering Dendrogram')
+#     plt.xlabel('sample index')
+#     plt.ylabel('distance (Ward)')
+#
+#     # transforme the 'cyl' column in a categorical variable. It will allow to put one color on each level.
+#     #     my_color=celltype.loc[d['ivl'], 'Sub_type'].cat.codes
+#     my_color = [celltypes_col[CLA.meta_data.loc[i, "Subtype"]] for i in d['ivl']]  # replace with a new color map, to be implemented
+#
+#     # Apply the right color to each label
+#     ax = plt.gca()
+#     xlbls = ax.get_xmajorticklabels()
+#     num = -1
+#     for lbl in xlbls:
+#         num += 1
+#         lbl.set_color(my_color[num])
+#     # if not save_prefix is None:
+#     #     fig.savefig("../Figure/Dendrogram_AllNeurons_Resample.pdf")
+#
+#     # Plot 2: Heatmap
+#     col_colors = pd.DataFrame({'Type': [celltypes_col[i] for i in CLA.meta_data["Subtype"]]},
+#                               index=CLA.meta_data.index)
+#     col_colors = col_colors.loc[co_cluster.index]
+#     g = sns.clustermap(co_cluster, linecolor='white',
+#                        row_colors=col_colors, col_colors=col_colors,
+#                        row_linkage=Z_sample, col_linkage=Z_sample,
+#                        annot=False, figsize=(12, 12))
+#     # if save:
+#     #     g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
+#     return
 
 
 def pickCLUSTERpara(method,selected_list):

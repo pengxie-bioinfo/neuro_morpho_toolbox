@@ -92,7 +92,8 @@ def get_layout(axis_x, axis_y, range_x, range_y, x_expand_ratio=1.1):
               }
     return layout
 
-def swc_to_edges(swc):
+
+def soma_to_edges(swc):
     '''
     :param swc: a dataframe from the attribute of the neuron object (see ./swc.py neuron.swc).
     :return: a list of node coordinates and attributes for the convenience of plotting
@@ -101,33 +102,71 @@ def swc_to_edges(swc):
     Ye = []
     Ze = []
     Te = []
-    Le = []
-    for i, cur_child in enumerate(swc.index.tolist()):
-        cur_parent = swc.loc[cur_child, "parent"]
-        if cur_parent == -1:
-            continue
-        Xe = Xe + [swc.x[cur_child], swc.x[cur_parent], None]
-        Ye = Ye + [swc.y[cur_child], swc.y[cur_parent], None]
-        Ze = Ze + [swc.z[cur_child], swc.z[cur_parent], None]
-        seg_length = ((swc.x[cur_child] - swc.x[cur_parent]) ** 2 +
-                      (swc.y[cur_child] - swc.y[cur_parent]) ** 2 +
-                      (swc.z[cur_child] - swc.z[cur_parent]) ** 2) ** 0.5
-        Le = Le + [seg_length, 0, 0]
-        if swc.type[cur_child] in [1, 2, 3, 4]:
-            if swc.type[cur_parent] == 1:
-                Te = Te + [swc.type[cur_child], 1, swc.type[cur_child]]
-            else:
-                Te = Te + [swc.type[cur_child]] * 3
-        else:
-            Te = Te + [0] * 3
-    return [Xe, Ye, Ze, Te, Le]
+    if swc[swc.type==1].shape[0]>0:
+        somaDF = swc[swc.type==1].copy()
+        Xe = Xe + [somaDF.x.iloc[0]]
+        Ye = Ye + [somaDF.y.iloc[0]]
+        Ze = Ze + [somaDF.z.iloc[0]]
+        Te = Te + [1]
+    return [Xe, Ye, Ze, Te]
+
+
+def swc_to_edges(swc):
+    '''
+    :param swc: a dataframe from the attribute of the neuron object (see ./swc.py neuron.swc).
+    :return: a list of node coordinates and attributes for the convenience of plotting
+    '''
+
+    # 1. Get all edges
+    all_nodes = swc.index.tolist()
+    children = swc.index[swc.parent.isin(all_nodes)].tolist()
+    N = len(children)
+    parents = swc.loc[children, "parent"].tolist()
+    cuts = [None] * N
+
+    # 2. Create a dataframe with all edges
+    # each edge is represented as 3 consecutive rows: [child, parent, empty]
+    res = pd.DataFrame(columns=['x', 'y', 'z', 'type'],
+                       index=range(N * 3)
+                       )
+    children_id = np.arange(N) * 3
+    parents_id = np.arange(N) * 3 + 1
+    cuts_id = np.arange(N) * 3 + 2
+
+    # 2.1. Location columns
+
+    for cur_col in ['x', 'y', 'z']:
+        res.loc[children_id, cur_col] = swc.loc[children, cur_col].tolist()
+        res.loc[parents_id, cur_col] = swc.loc[parents, cur_col].tolist()
+    res.loc[cuts_id, ['x', 'y', 'z']] = None
+
+    # 2.2 Type column
+    res.loc[children_id, 'type'] = swc.loc[children, 'type'].tolist()
+    res.loc[parents_id, 'type'] = swc.loc[children, 'type'].tolist()  # Use child type to represent a segment
+    res.loc[cuts_id, 'type'] = swc.loc[children, 'type'].tolist()
+    # Soma type
+    soma_list = swc[swc.type == 1].index.tolist()
+    if len(soma_list) > 0:
+        i_soma = [parents_id[parents.index(i)] for i in soma_list if i in parents]
+        res.loc[i_soma, 'type'] = 1
+    # Invalid types
+    res.loc[~res.type.isin([1, 2, 3, 4]), "type"] = 0
+
+    # Output
+    Xe = res.x.tolist()
+    Ye = res.y.tolist()
+    Ze = res.z.tolist()
+    Te = res.type.tolist()
+
+    return [Xe, Ye, Ze, Te]
+
 
 def plot_swc_mpl(segment,
                  color='rgb(255, 0, 0)', view_by='Horizontal',
                  linewidth=1, alpha=1,
                  ax=None):
     assert view_by in u_views, " ".join((["option 'view_by' should be one of the following: "] + u_views))
-    Xe, Ye, Ze, Te, Le = segment
+    Xe, Ye, Ze, Te = segment
 
     if view_by == "Coronal":
         tp = pd.DataFrame({'heng': Ze, 'zong': Ye, 'Te': Te})
@@ -158,7 +197,7 @@ def plot_swc_mpl(segment,
 def plot_swc_plotly(swc_name, metadata, segment_dict={}, flip=False, z_size=None,
              color='rgb(255,0,0)', show_plot=True, view_by='Horizontal', ranges=None):
     assert view_by in u_views, " ".join((["option 'view_by' should be one of the following: "] + u_views))
-    Xe, Ye, Ze, Te, Le = swc_to_edges(swc_name, metadata, segment_dict=segment_dict, flip=flip, z_size=z_size)
+    Xe, Ye, Ze, Te = swc_to_edges(swc_name, metadata, segment_dict=segment_dict, flip=flip, z_size=z_size)
     # if ranges is not None:
     #     xrange, yrange, zrange = ranges
 
@@ -188,6 +227,143 @@ def plot_swc_plotly(swc_name, metadata, segment_dict={}, flip=False, z_size=None
                   })
     return lines
 
+
+def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
+                view="Horizontal",
+                margin=0.05, dpi=80, enlarge=1.5, alpha=0.5, ax=None,
+                color="classical", flip_soma=True):
+    assert view in u_views, " ".join((["option 'view_by' should be one of the following: "] + u_views))
+
+    # Background image
+    nda = np.empty([0, 0])
+    xspace = 0
+    yspace = 0
+    if view.lower() == "coronal":
+        nda = (np.max(ccf_annotation.array, axis=0) > 0)  # 3D -> 2D projection
+        xspace = ccf_annotation.space['z']
+        yspace = ccf_annotation.space['y']
+    if view.lower() == "horizontal":
+        nda = (np.max(ccf_annotation.array, axis=1) > 0)
+        xspace = ccf_annotation.space['z']
+        yspace = ccf_annotation.space['x']
+    if view.lower() == "sagittal":
+        nda = (np.max(ccf_annotation.array, axis=2) > 0).transpose()
+        xspace = ccf_annotation.space['y']
+        yspace = ccf_annotation.space['x']
+
+    xsize = nda.shape[1]
+    ysize = nda.shape[0]
+
+    # Figure settings
+    if ax is None:
+        figsize = (1 + margin) * xsize * enlarge / dpi, (1 + margin) * ysize * enlarge / dpi
+        fig = plt.figure(figsize=figsize, dpi=dpi)
+        # Make the axis the right size...
+        ax = fig.add_axes([margin, margin, 1 - 2 * margin, 1 - 2 * margin])
+
+    extent = (0, xsize * xspace, ysize * yspace, 0)
+    ax.imshow(nda, cmap="Greys", alpha=0.2, extent=extent)
+
+    # Plot cells
+    linewidth = 0.7
+    alpha = 0.7
+    if color.lower() == "single_cell":
+        single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
+    if color.lower() == "celltype":
+        celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="spectral", return_str=False)
+    if color.lower() == "cluster":
+        cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
+
+    # Option 1: Soma-only mode
+    if color.lower() == "soma" or color.lower() == "majorsoma":
+        print('Illustrating soma locations inside a brain from ' + view.lower() + ' view:')
+        for cellname in cell_list:
+            Xe, Ye, Ze, Te = soma_to_edges(neurons_dict[cellname].swc)
+            # axis_name = view_axis[view]
+            tp = pd.DataFrame(columns=['heng', 'zong', 'Te'])
+            if view.lower() == "coronal":
+                tp = pd.DataFrame({'heng': Ze, 'zong': Ye, 'Te': Te})
+            if view.lower() == "horizontal":
+                tp = pd.DataFrame({'heng': Ze, 'zong': Xe, 'Te': Te})
+            if view.lower() == "sagittal":
+                tp = pd.DataFrame({'heng': Xe, 'zong': Ye, 'Te': Te})
+                flip_soma = False
+            if color.lower() == "soma":
+                soma_color = single_cell_color_dict[cellname]
+            else:
+                soma_color = cluster_color_dict[metadata.loc[cellname, "Cluster"]]
+            if flip_soma:
+                ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
+                           tp.zong[tp["Te"] == 1].iloc[0],
+                           c=[soma_color],
+                           marker="o",
+                           s=30)
+            else:
+                ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
+                           tp.zong[tp["Te"] == 1].iloc[0],
+                           c=[soma_color],
+                           marker="o",
+                           s=30)
+        return
+
+    # Option 2: swc mode
+    start_sum = time.time()
+    i_p = 0
+    for cellname in cell_list:
+        # TBI: replace by plot_swc_mpl
+        start_sub = time.time()
+        i_p = i_p + 1
+        # print("Processing progress: %.2f" % (i_p / len(cell_list)))
+        Xe, Ye, Ze, Te = swc_to_edges(neurons_dict[cellname].swc)
+        tp = pd.DataFrame(columns=['heng', 'zong', 'Te'])
+        if view.lower() == "coronal":
+            tp = pd.DataFrame({'heng': Ze, 'zong': Ye, 'Te': Te})
+        if view.lower() == "horizontal":
+            tp = pd.DataFrame({'heng': Ze, 'zong': Xe, 'Te': Te})
+        if view.lower() == "sagittal":
+            tp = pd.DataFrame({'heng': Xe, 'zong': Ye, 'Te': Te})
+            flip_soma = False
+
+        if color.lower() == "classical":
+            ax.plot(tp.heng[tp.Te == 2], tp.zong[tp.Te == 2], c='r', linewidth=linewidth, alpha=alpha)
+            ax.plot(tp.heng[tp.Te == 3], tp.zong[tp.Te == 3], c='b', linewidth=linewidth, alpha=alpha)
+            ax.plot(tp.heng[tp.Te == 4], tp.zong[tp.Te == 4], c='magenta', linewidth=linewidth, alpha=alpha)
+            soma_color = 'black'
+        if color.lower() == "single_cell":
+            soma_color = single_cell_color_dict[cellname]
+            ax.plot(tp.heng, tp.zong,
+                    c=single_cell_color_dict[cellname],
+                    linewidth=linewidth, alpha=alpha)
+        if color.lower() == "celltype":
+            soma_color = celltype_color_dict[metadata.loc[cellname, "CellType"]]
+            ax.plot(tp.heng, tp.zong,
+                    c=celltype_color_dict[metadata.loc[cellname, "CellType"]],
+                    linewidth=linewidth, alpha=alpha)
+        if color.lower() == "cluster":
+            soma_color = cluster_color_dict[metadata.loc[cellname, "Cluster"]]
+            ax.plot(tp.heng, tp.zong,
+                    c=cluster_color_dict[metadata.loc[cellname, "Cluster"]],
+                    linewidth=linewidth, alpha=alpha)
+        tp = tp[(tp["Te"] == 1)]
+
+        # Show soma location
+        if flip_soma:
+            ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
+                       tp.zong[tp["Te"] == 1].iloc[0],
+                       c=[soma_color],
+                       marker="*",
+                       s=30)
+        else:
+            ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
+                       tp.zong[tp["Te"] == 1].iloc[0],
+                       c=[soma_color],
+                       marker="*",
+                       s=30)
+        end_sub = time.time()
+        # print("Single cell's loading time: %.2f" % (end_sub - start_sub))
+    end_sum = time.time()
+    print("Total loading time: %.2f" % (end_sum - start_sum))
+    return
 
 def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5):
     max_col = 3
@@ -335,154 +511,4 @@ def qualitative_scatter(x, y, c, palette='Spectral', max_colors=25):
     return fig
 
 
-def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
-                view="Horizontal",
-                margin=0.05, dpi=80, enlarge=1.5, alpha=0.5, ax=None,
-                color="classical", flip_soma=True):
-    assert view in u_views, " ".join((["option 'view_by' should be one of the following: "] + u_views))
 
-    # Background image
-    nda = np.empty([0,0])
-    xspace = 0
-    yspace = 0
-    if view.lower() == "coronal":
-        nda = (np.max(ccf_annotation.array, axis=0) > 0)  # 3D -> 2D projection
-        xspace = ccf_annotation.space['z']
-        yspace = ccf_annotation.space['y']
-    if view.lower() == "horizontal":
-        nda = (np.max(ccf_annotation.array, axis=1) > 0)
-        xspace = ccf_annotation.space['z']
-        yspace = ccf_annotation.space['x']
-    if view.lower() == "sagittal":
-        nda = (np.max(ccf_annotation.array, axis=2) > 0).transpose()
-        xspace = ccf_annotation.space['y']
-        yspace = ccf_annotation.space['x']
-
-    xsize = nda.shape[1]
-    ysize = nda.shape[0]
-
-    # Figure settings
-    if ax is None:
-        figsize = (1 + margin) * xsize * enlarge / dpi, (1 + margin) * ysize * enlarge / dpi
-        fig = plt.figure(figsize=figsize, dpi=dpi)
-        # Make the axis the right size...
-        ax = fig.add_axes([margin, margin, 1 - 2 * margin, 1 - 2 * margin])
-
-    extent = (0, xsize * xspace, ysize * yspace, 0)
-    ax.imshow(nda, cmap="Greys", alpha=0.2, extent=extent)
-
-    # Plot cells
-    linewidth = 0.7
-    alpha = 0.7
-    single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
-    cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
-    
-    if color.lower() == "soma" or color.lower() == "majorsoma":
-        print('Illustrating soma locations inside a brain from '+view.lower()+' view:')
-        for cellname in cell_list:
-            Xe, Ye, Ze, Te, Le = soma_to_edges(neurons_dict[cellname].swc)
-            # axis_name = view_axis[view]
-            tp = pd.DataFrame(columns=['heng', 'zong', 'Te'])
-            if view.lower() == "coronal":
-                tp = pd.DataFrame({'heng': Ze, 'zong': Ye, 'Te': Te})
-            if view.lower() == "horizontal":
-                tp = pd.DataFrame({'heng': Ze, 'zong': Xe, 'Te': Te})
-            if view.lower() == "sagittal":
-                tp = pd.DataFrame({'heng': Xe, 'zong': Ye, 'Te': Te})
-                flip_soma = False
-            if color.lower() == "soma":
-                soma_color = single_cell_color_dict[cellname]
-            else:
-                
-                soma_color = cluster_color_dict[metadata.loc[cellname, "Cluster"]]
-            if flip_soma:
-                ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
-                           tp.zong[tp["Te"] == 1].iloc[0],
-                           c=[soma_color],
-                           marker="o",
-                           s=30)
-            else:
-                ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
-                           tp.zong[tp["Te"] == 1].iloc[0],
-                           c=[soma_color],
-                           marker="o",
-                           s=30)     
-        return
-    
-    single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
-    celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="paired", return_str=False)
-    cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
-    
-    start_sum= time.time()
-    i_p = 0
-    for cellname in cell_list:
-        start_sub = time.time()
-        i_p=i_p+1
-        print("Processing progress: %.2f" % (i_p/len(cell_list)))
-        Xe, Ye, Ze, Te, Le = swc_to_edges(neurons_dict[cellname].swc)
-        # axis_name = view_axis[view]
-        tp = pd.DataFrame(columns=['heng', 'zong', 'Te'])
-        if view.lower() == "coronal":
-            tp = pd.DataFrame({'heng': Ze, 'zong': Ye, 'Te': Te})
-        if view.lower() == "horizontal":
-            tp = pd.DataFrame({'heng': Ze, 'zong': Xe, 'Te': Te})
-        if view.lower() == "sagittal":
-            tp = pd.DataFrame({'heng': Xe, 'zong': Ye, 'Te': Te})
-            flip_soma = False
-
-        soma_color = single_cell_color_dict[cellname]
-        if color.lower() == "classical":
-            ax.plot(tp.heng[tp.Te == 2], tp.zong[tp.Te == 2], c='r', linewidth=linewidth, alpha=alpha)
-            ax.plot(tp.heng[tp.Te == 3], tp.zong[tp.Te == 3], c='b', linewidth=linewidth, alpha=alpha)
-            ax.plot(tp.heng[tp.Te == 4], tp.zong[tp.Te == 4], c='magenta', linewidth=linewidth, alpha=alpha)
-            soma_color = 'black'
-        if color.lower() == "single_cell":
-            soma_color = single_cell_color_dict[cellname]
-            ax.plot(tp.heng, tp.zong,
-                    c=single_cell_color_dict[cellname],
-                    linewidth=linewidth, alpha=alpha)
-        if color.lower() == "cellType":
-            soma_color = celltype_color_dict[metadata.loc[cellname, "CellType"]]
-            ax.plot(tp.heng, tp.zong,
-                    c=celltype_color_dict[metadata.loc[cellname, "CellType"]],
-                    linewidth=linewidth, alpha=alpha)
-        if color.lower() == "cluster":
-            soma_color = cluster_color_dict[metadata.loc[cellname, "Cluster"]]
-            ax.plot(tp.heng, tp.zong,
-                    c=cluster_color_dict[metadata.loc[cellname, "Cluster"]],
-                    linewidth=linewidth, alpha=alpha)
-        tp = tp[(tp["Te"] == 1)]
-        if flip_soma:
-            ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
-                       tp.zong[tp["Te"] == 1].iloc[0],
-                       c=[soma_color],
-                       marker="*",
-                       s=30)
-        else:
-            ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
-                       tp.zong[tp["Te"] == 1].iloc[0],
-                       c=[soma_color],
-                       marker="*",
-                       s=30)
-        end_sub = time.time()
-        print("Single cell's loading time: %.2f" % (end_sub-start_sub))        
-    end_sum = time.time()
-    print("Total loading time: %.2f" % (end_sum-start_sum))        
-    return
-def soma_to_edges(swc):
-    '''
-    :param swc: a dataframe from the attribute of the neuron object (see ./swc.py neuron.swc).
-    :return: a list of node coordinates and attributes for the convenience of plotting
-    '''
-    Xe = []
-    Ye = []
-    Ze = []
-    Te = []
-    Le = []
-    if swc[swc.type==1].shape[0]>0:
-        somaDF = swc[swc.type==1].copy()
-        Xe = Xe + [somaDF.x.iloc[0]]
-        Ye = Ye + [somaDF.y.iloc[0]]
-        Ze = Ze + [somaDF.z.iloc[0]]    
-        Te = Te + [1]
-    return [Xe, Ye, Ze, Te, Le]
