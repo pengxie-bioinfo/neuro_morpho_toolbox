@@ -385,7 +385,7 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
     return hdbscan.HDBSCAN(min_cluster_size = min_cluster_size_value, min_samples = min_samples_value, 
                            metric = metric_value, alpha = alpha_value, p = p_value, 
                            algorithm = algorithm_value, leaf_size = leaf_size_value, memory=Memory(location=None), 
-                           approx_min_span_tree=True, gen_min_span_tree=False, core_dist_n_jobs=4, 
+                           approx_min_span_tree=True, gen_min_span_tree=False, core_dist_n_jobs= None, 
                            cluster_selection_method = cluster_selection_method_value, allow_single_cluster=False, 
                            prediction_data=False, match_reference_implementation=False).fit(x.astype(np.float64)).labels_
 
@@ -573,7 +573,7 @@ def pickCLUSTERpara(method,selected_list):
         criterionH_list='inconsistent','distance','maxclust','monocrit','maxclust_monocrit'
         kmeans_dict={'n_clusters':20, 'init':'k-means++', 'n_init':10, 'max_iter':300, 'tol':0.0001,
                      'precompute_distances':'auto', 'verbose':0, 'random_state':None,'copy_x': True,
-                     'n_jobs':12, 'algorithm':'auto'}
+                     'n_jobs':None, 'algorithm':'auto'}
         for init_idx in init_list:
             kmeans_dict.update(init = init_idx)
             for algorithm_idx in algorithm_list:
@@ -608,7 +608,7 @@ def pickCLUSTERpara(method,selected_list):
         metriclist = [ 'braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation','euclidean', 'cosine',
                       'dice','hamming', 'jaccard', 'kulsinski', 'matching','minkowski','rogerstanimoto','russellrao','sokalmichener', 'sokalsneath']
         dbscan_dict={'eps':20, 'min_samples':5, 'metric':'euclidean','metric_params':None, 'algorithm':'auto', 
-                     'leaf_size':30, 'p':None,'n_jobs':12}
+                     'leaf_size':30, 'p':None,'n_jobs':None}
         for algorithm_idx in algorithm_list:
             dbscan_dict.update(algorithm = algorithm_idx )
             for metric_iter in metriclist:
@@ -657,7 +657,7 @@ def pickCLUSTERpara(method,selected_list):
         cluster_selection_method_list = ['leaf','eom']
         hdbscan_dict={'min_cluster_size':5, 'metric':'euclidean','alpha':1.0, 'min_samples':1,
                       'p':2,'algorithm':'best', 'leaf_size':40, 'approx_min_span_tree':True,
-                      'gen_min_span_tree':False,'core_dist_n_jobs':4,'cluster_selection_method':'eom',
+                      'gen_min_span_tree':False,'core_dist_n_jobs':None,'cluster_selection_method':'eom',
                       'allow_single_cluster': False,'prediction_data':False,
                       'match_reference_implementation':False}
 
