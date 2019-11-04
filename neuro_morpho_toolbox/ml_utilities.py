@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import matplotlib
 import matplotlib.pyplot as plt
+from scipy.spatial import distance
 from joblib import Memory
 import os
 import re
@@ -24,6 +25,8 @@ import matplotlib.cm as cm
 from matplotlib.backends.backend_pdf import PdfPages
 from scipy.stats import mannwhitneyu
 import hdbscan
+import time
+import neuro_morpho_toolbox as nmt
 # from pysankey import sankey
 
 from sklearn.cluster import AgglomerativeClustering, KMeans, DBSCAN, SpectralClustering, Birch
@@ -483,7 +486,6 @@ def get_co_cluster(x, cell_names, ratio_resample=0.85, n_refeature=100,
 #     #     g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
 #     return
 
-
 def pickCLUSTERpara(method,selected_list):
     if len(selected_list) >0:
         print('Will calculate ARI for '+ str(len(selected_list) ) + ' neurons')
@@ -620,10 +622,10 @@ def pickCLUSTERpara(method,selected_list):
                 if algorithm_idx == 'brute' and metric_iter in ['haversine','wminkowski', 'mahalanobis','infinity']:
                     continue
                 if metric_iter in ['wminkowski', 'minkowski']:
-                    p_iter =randrange(1,10)
+                    p_iter = randrange(1,10)
                     dbscan_dict.update(p = p_iter)
                     while metric_iter == 'minkowski' and p_iter == 1:
-                        p_iter =randrange(2,10)
+                        p_iter = randrange(2,10)
                         dbscan_dict.update(p = p_iter)
                 for epsidx in np.exp(-np.arange(0,4,0.5)):
                     dbscan_dict.update(eps = epsidx)
@@ -687,20 +689,19 @@ def pickCLUSTERpara(method,selected_list):
         result_hdbscan.set_index('idx',inplace=True)       
         result_DF = result_hdbscan.copy()
     if method.lower() == 'snn':
-        metric_list = [ 'euclidean','minkowski', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurtis', 'canberra',
-                       'chebyshev','correlation','dice', 'hamming', 'jaccard','kulsinski', 'matching', 
-                       'rogerstanimoto', 'russellrao','sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule']
+        metric_list = ['sqeuclidean','euclidean','minkowski', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurtis',
+                       'canberra','chebyshev']
         snn_dict = {'knn':5, 'metric':'minkowski','method':'FastGreedy'}
         result_snn= pd.DataFrame(columns = colname)
-        for knn_iter in range(2,30):
-            snn_dict.update(knn = knn_iter)
+        for knn_iter in range(3,30):
+            snn_dict.update(knn =knn_iter)
             for metric_idx in metric_list:
                 snn_dict.update(metric = metric_idx)
-                _ = ns. get_clusters(method = 'SNN_community',karg_dict = snn_dict)
+                _ = ns. get_clusters(method='SNN_community',karg_dict=snn_dict)
                 tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
                                                                           ns.metadata.loc[selected_list,'Cluster'])
                 tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(snn_dict)]).T.copy()
-                tempDF.columns = colname
+                tempDF.columns=colname
                 print(str(snn_dict))
                 result_snn = result_snn.append(tempDF)
         idx_snn = ['SNN'+str(x) for x in range(result_snn.shape[0])]    
@@ -708,3 +709,42 @@ def pickCLUSTERpara(method,selected_list):
         result_snn.set_index('idx',inplace=True)  
         result_DF = result_snn.copy()
     return result_DF.copy()
+
+def disCal(SOMA_raw,Contour_01,Array_ID, near_n, flipF = True):
+    assert near_n>0, "The number of nearest contour points should be bigger than 0"
+    start = time.time()
+    scaledDF = pd.DataFrame()
+    scaledDF["x"] = (SOMA_raw["x"] / nmt.annotation.space["x"]).copy()
+    scaledDF["y"] = (SOMA_raw["y"] / nmt.annotation.space["y"]).copy()
+    scaledDF["z"] = (SOMA_raw["z"] / nmt.annotation.space["z"]).copy()
+    #flip the somalocation
+    if flipF:
+        scaledDF["z"][scaledDF['z']>(nmt.annotation.size["z"]//2)] = scaledDF["z"][scaledDF["z"]>(nmt.annotation.size['z']//2)] -nmt.annotation.size["z"]//2 
+    i_p = 0
+    for idx in scaledDF.index.tolist():
+        i_p = i_p+1
+        tempCoor = np.array([[scaledDF.loc[idx,'x'],scaledDF.loc[idx,'y'],scaledDF.loc[idx,'z']]])
+        tempID = Array_ID[int(scaledDF.loc[idx,'x']),int(scaledDF.loc[idx,'y']),int(scaledDF.loc[idx,'z'])]
+        coords = []
+        if tempID == 0:
+            scaledDF.loc[idx,'SqEuclidean'] = 'unknown'
+            scaledDF.loc[idx,'min_Euclidean'] = 0.
+            scaledDF.loc[idx,'mean_Euclidean'] = 0.
+            scaledDF.loc[idx,'Region'] = 'unknown'
+            continue
+        Mask_temp = np.multiply(Array_ID == tempID,Contour_01)#Contour for this tempID
+        co_1_temp,co_2_temp,co_3_temp = np.where( Mask_temp >0)
+        for icoor in range(len(co_1_temp)):
+            coords.append([co_1_temp[icoor], co_2_temp[icoor], co_3_temp[icoor]])
+        zs = np.sort(distance.cdist(tempCoor,coords, 'sqeuclidean'))[0,0:min(near_n,distance.cdist(tempCoor,coords, 'sqeuclidean').shape[1])]
+        scaledDF.loc[idx,'SqEuclidean'] = str(zs.tolist())
+        scaledDF.loc[idx,'min_Euclidean'] = np.sqrt(float(scaledDF.loc[idx,'SqEuclidean'].strip('[]').split(",")[0]))
+        scaledDF.loc[idx,'mean_Euclidean'] = np.mean(zs)
+        if i_p%10 ==0:
+            print('Load progress: %.5f'% (i_p/scaledDF.shape[0]))
+        scaledDF.loc[idx,'Region'] = nmt.bs.id_to_name(tempID)
+    end = time.time()
+    print("Total loading time: %.2f" % (end-start))
+    scaledDF = scaledDF.fillna(str([0]))
+    #scaledDF['min_Euclidean'] = scaledDF.min_Euclidean.astype(float)
+    return scaledDF.copy()

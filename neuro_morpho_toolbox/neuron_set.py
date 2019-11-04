@@ -93,38 +93,39 @@ class neuron_set:
         self.UMAP = nmt.UMAP_wrapper(df, n_neighbors=n_neighbors,min_dist=min_dist,n_components=n_components,metric=metric,PCA_first=PCA_first,n_PC=n_PC)
         return self.UMAP
 
-    def get_clusters(self,
-                     method='SNN_community',
-                     karg_dict={'knn':5,
+    def get_clusters(input_ns,
+                    method='SNN_community',
+                    karg_dict={'knn':5,
                                 'metric':'minkowski',
-                                'method':'FastGreedy'}):
-                     #hier_dict={'L_method':'single',
-                                #'L_metric':'euclidean',
-                                #'criterionH':'inconsistent',
-                               # 'depth':2,'R':None,
-                               # 't':0.9,
-                               # 'optimal_ordering':False},
+                                'method':'FastGreedy'},neuron_list = []):
+                    #hier_dict={'L_method':'single',
+                        #'L_metric':'euclidean',
+                        #'criterionH':'inconsistent',
+                        # 'depth':2,'R':None,
+                        # 't':0.9,
+                        # 'optimal_ordering':False},
                     #kmeans_dict={'n_clusters':20, 
-                         #         'init':'k-means++', 
-                          #        'n_init':10, 'max_iter':300, 'tol':0.0001,
-                          #        'precompute_distances':'auto', 
-                          #        'verbose':0, 'random_state':None, 
-                          #        'copy_x': True, 
-                           #       'n_jobs':12, 'algorithm':'auto'}
+                        #         'init':'k-means++', 
+                        #        'n_init':10, 'max_iter':300, 'tol':0.0001,
+                        #        'precompute_distances':'auto', 
+                        #        'verbose':0, 'random_state':None, 
+                        #        'copy_x': True, 
+                        #       'n_jobs':12, 'algorithm':'auto'}
                     #dbscan_dict={'eps':0.5, 
-                         #         'min_samples':5, 
-                          #        'metric':'euclidean','metric_params':None,
-                          #        'algorithm':'auto', 
-                          #        'leaf_size':30, 'p':None,'n_jobs':None}
+                        #         'min_samples':5, 
+                        #        'metric':'euclidean','metric_params':None,
+                        #        'algorithm':'auto', 
+                        #        'leaf_size':30, 'p':None,'n_jobs':None}
                     #hdbscan_dict={'min_cluster_size':5, 
-                         #         'min_samples':1, 
-                          #        'metric':'euclidean','alpha':None,
-                          #        'p': ,'algorithm':'auto', 
-                          #        'leaf_size':40, 'p':2}
-
+                        #         'min_samples':1, 
+                        #        'metric':'euclidean','alpha':None,
+                        #        'p': ,'algorithm':'auto', 
+                        #        'leaf_size':40, 'p':2}
+        if len(neuron_list) == 0:
+            neuron_list = input_ns.metadata.index
         methods_allowed = ['SNN_community', 'Hierarchy', 'Kmeans', 'DBSCAN', 'HDBSCAN']
         assert method in methods_allowed, "Please set 'method' as one of the following: 'SNN_community', 'Hierarchy', 'Kmeans', 'DBSCAN', 'HDBSCAN'"
-                     
+
         if method=='SNN_community':
             print('Result of SNN_community Clustering')
             if 'knn' in karg_dict.keys():
@@ -139,32 +140,34 @@ class neuron_set:
                 community_method = karg_dict['method']
             else:
                 community_method = 'FastGreedy'
-            cur_clusters = nmt.get_clusters_SNN_community(self.UMAP, knn=knn, metric=metric, method=community_method)
-            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]
-            
+            cur_clusters = nmt.get_clusters_SNN_community(input_ns.UMAP.loc[neuron_list,:], knn=knn, metric=metric,
+                                                        method=community_method)
+            input_ns.metadata.loc[neuron_list,'Cluster'] = ['C' + str(i) for i in cur_clusters]
+
         #karg_dict={'L_method':'single','L_metric':'euclidean'.'t':0.9,'criterionH':'inconsistent', depth=2, R=None, monocrit=None}
         if method =='Hierarchy':
             print('Result of Hierarchy Clustering')
-            cur_clusters = nmt.get_clusters_Hierarchy_clustering(self.UMAP, karg_dict)
-            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]        
-            
-                                
+            cur_clusters = nmt.get_clusters_Hierarchy_clustering(input_ns.UMAP.loc[neuron_list,:], karg_dict)
+            input_ns.metadata.loc[neuron_list,'Cluster'] = ['C' + str(i) for i in cur_clusters]        
+
+
         if method =='Kmeans':
             print('Result of Kmeans Clustering')
-            cur_clusters = nmt.get_clusters_kmeans_clustering(self.UMAP, karg_dict)
-            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]    
-            
+            cur_clusters = nmt.get_clusters_kmeans_clustering(input_ns.UMAP.loc[neuron_list,:], karg_dict)
+            input_ns.metadata.loc[neuron_list,'Cluster'] = ['C' + str(i) for i in cur_clusters]    
+
         if method =='DBSCAN':
             print('Result of DBSCAN Clustering')
-            cur_clusters = nmt.get_clusters_dbscan_clustering(self.UMAP, karg_dict)
-            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]             
+            cur_clusters = nmt.get_clusters_dbscan_clustering(input_ns.UMAP.loc[neuron_list,:], karg_dict)
+            input_ns.metadata.loc[neuron_list,'Cluster'] = ['C' + str(i) for i in cur_clusters]             
 
         if method =='HDBSCAN':
             print('Result of HDBSCAN Clustering')
-            cur_clusters = nmt.get_clusters_hdbscan_clustering(self.UMAP, karg_dict)
-            self.metadata['Cluster'] = ['C' + str(i) for i in cur_clusters]                         
-        #self.get_cluster_metric()
+            cur_clusters = nmt.get_clusters_hdbscan_clustering(input_ns.UMAP.loc[neuron_list,:], karg_dict)
+            input_ns.metadata.loc[neuron_list,'Cluster'] = ['C' + str(i) for i in cur_clusters]                         
+        #input_ns.get_cluster_metric()
         return            
+                
         # TODO: other clustering methods...
     def get_cluster_metric(self):
         print("Homogeneity: %0.3f" % metrics.homogeneity_score(self.metadata['CellType'],self.metadata['Cluster']))
