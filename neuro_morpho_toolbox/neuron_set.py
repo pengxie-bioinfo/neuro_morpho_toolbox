@@ -250,7 +250,7 @@ class neuron_set:
             print('Will calculate ARI for '+ str(len(selected_list) ) + ' neurons')
         result_DF = pd.DataFrame()
         method_list = ['kmeans','snn','hdbscan','hierarchy','dbscan']
-        assert method in method_list, "Should be one of "+str(method_list)
+        assert method.lower() in method_list, "Should be one of "+str(method_list)
         colname = ['ARI','NumCluster','parameter']
         if method.lower() == 'hierarchy':
             #%% Store the result of Hierarchy
