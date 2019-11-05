@@ -5,7 +5,10 @@ import matplotlib.pyplot as plt
 from scipy.spatial import distance
 from joblib import Memory
 import os
+import random
 import re
+import multiprocessing
+import time
 import pickle
 from timeit import default_timer as timer
 from sklearn.preprocessing import scale
@@ -748,3 +751,53 @@ def disCal(SOMA_raw,Contour_01,Array_ID, near_n, flipF = True):
     scaledDF = scaledDF.fillna(str([0]))
     #scaledDF['min_Euclidean'] = scaledDF.min_Euclidean.astype(float)
     return scaledDF.copy()
+
+
+def findBESTpara(inputDF,clusterRange,num_return):
+    inputDF.drop_duplicates(subset=None, keep='first', inplace=True)
+    [minR,maxR] = clusterRange
+    inputDF = inputDF[inputDF['NumCluster'] >= minR] 
+    inputDF = inputDF[inputDF['NumCluster'] <= maxR] 
+    inputDF.sort_values(by=['ARI'], ascending=False, inplace = True)
+    maxARI_DF = inputDF[inputDF['ARI']==max(inputDF['ARI'])]
+    print('Available parameters are: ')
+    if maxARI_DF.shape[0]>num_return:
+        for i in maxARI_DF.index:
+            print('ARI is ' + str(maxARI_DF.loc[i,'ARI']) + ', and corresponding parameter is '+ str(maxARI_DF.loc[i,'parameter']))
+        return maxARI_DF.copy()
+    outputDF = inputDF.iloc[:min(inputDF.shape[0],num_return+1),:]
+    for i in outputDF.index:
+            print(outputDF.loc[i,'parameter'])
+    return outputDF.copy()
+
+def fre_Matrix(fre_M, cluster_method,para_DF):
+    clusterL = ns.metadata.index[random.sample(range(0,ns.metadata.shape[0]), int(ns.metadata.shape[0]*0.95))]
+    para_chosen = eval(para_DF.loc[para_DF.index.tolist()[randrange(para_DF.shape[0])],'parameter'])
+    _ = ns.get_clusters(method =cluster_method,karg_dict = para_chosen,neuron_list =clusterL)
+    Crange, Ccounts = np.unique(ns.metadata.loc[clusterL,'Cluster'], return_counts = True)
+    for iter_C in Crange:
+        selected_row = ns.metadata.loc[clusterL,:]
+        selected_row = selected_row[selected_row["Cluster"]==iter_C]
+        Clist = selected_row.index.tolist()
+        fre_M.loc[Clist,Clist] = fre_M.loc[Clist,Clist] + 1
+    return fre_M.values
+
+def para_cocluster(cluster_method,para_DF,corenum, run_num):
+    start = time.perf_counter ()
+    start=time.time()
+    cores = corenum#multiprocessing.cpu_count()
+    pool = multiprocessing.Pool(processes=cores)
+    fre_M_t = pd.DataFrame(index = ns.UMAP.index, columns =ns.UMAP.index)
+    fre_M_t [fre_M_t.isnull()]=0
+    pool_list=[]
+    result_list=[]
+    for i in range(run_num):
+        pool_list.append(pool.apply_async(fre_Matrix, (fre_M_t, cluster_method, para_DF)))
+
+    result_list=[xx.get() for xx in pool_list]
+    print(sum([xx for xx in  result_list]))
+    pool.close()
+    pool.join()
+    elapsed = (time.time() - start)
+    print('Time needed to run Hierarchy is '+ str(elapsed))
+    return sum([xx for xx in  result_list])
