@@ -514,6 +514,7 @@ class neuron_set:
         :param run_num: number of co-clustering
         :return: a square array with each element indicating number of cocluster within run_num
         '''    
+        assert type(para_input) == dict or type(para_input) ==pd.DataFrame,"Input parameters for coclustering must be either dictionary of pandas DataFrame containing all parameters"
         start = time.perf_counter ()
         start=time.time()
         cores = corenum#multiprocessing.cpu_count()
