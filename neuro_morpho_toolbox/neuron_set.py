@@ -7,7 +7,9 @@ from sklearn import metrics
 from scipy.cluster.hierarchy import dendrogram, linkage    
 from neuro_morpho_toolbox import neuron, soma_features, projection_features, dendrite_features, lm_dendrite_features, lm_axon_features
 import neuro_morpho_toolbox as nmt
-
+import random
+from random import randrange
+import multiprocessing
 def load_swc_list(swc_path, zyx=False):
     '''
     load all the swc files under a folder
@@ -245,12 +247,23 @@ class neuron_set:
         self.features['lm_axon_features'].rearrange_by_id(self.names)
         return
 
-    def pickCLUSTERpara(self, method,selected_list):
-        if len(selected_list) >0:
+    def pickCLUSTERpara(self, method,selected_list= None):
+        '''
+        :param method: a str indicating the cluster method
+        :param selected_list: list indicating reliable neuron index
+        :return: a DataFrame with columns ['ARI', 'NumCluster', 'parameter']
+            * For Hierarchy, will try 44986 parameters
+            * For Kmeans, will try 60480 parameters
+            * For DBSCAN, will try 21200 parameters
+            * For HDBSCAN, will be 9198 parameters
+            * For SNN_Community, will try 270 parameters
+        ''' 
+        if selected_list == None:
+            selected_list = self.UMAP.index.tolist()
             print('Will calculate ARI for '+ str(len(selected_list) ) + ' neurons')
         result_DF = pd.DataFrame()
         method_list = ['kmeans','snn','hdbscan','hierarchy','dbscan']
-        assert method.lower() in method_list, "Should be one of "+str(method_list)
+        assert method in method_list, "Should be one of "+str(method_list)
         colname = ['ARI','NumCluster','parameter']
         if method.lower() == 'hierarchy':
             #%% Store the result of Hierarchy
@@ -354,11 +367,11 @@ class neuron_set:
                                                         str(kmeans_dict)]).T.copy()
                                     tempDF.columns=colname
                                     print(str(kmeans_dict))
-                                    result_kmeans = result_kmeans.append(tempDF)         
-            idx_kmeans = ['KMeans'+str(x) for x in range(result_kmeans.shape[0])]    
+                                    result_kmeans = result_kmeaself.append(tempDF)         
+            idx_kmeans = ['KMeans'+str(x) for x in range(result_kmeaself.shape[0])]    
             result_kmeans['idx'] = idx_kmeans
-            result_kmeans.set_index('idx',inplace=True)       
-            result_DF = result_kmeans.copy()
+            result_kmeaself.set_index('idx',inplace=True)       
+            result_DF = result_kmeaself.copy()
             
         if method.lower() == 'dbscan':
             result_dbscan = pd.DataFrame(columns = colname)
@@ -410,7 +423,8 @@ class neuron_set:
             metric_list = [ 'euclidean','minkowski', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurtis', 'canberra',
                         'chebyshev','correlation','dice', 'hamming', 'jaccard','kulsinski', 'matching', 
                         'rogerstanimoto', 'russellrao','sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule']
-                   
+            
+        
             algorithm_list = ['best', 'generic','prims_kdtree','boruvka_kdtree']#, 
             cluster_selection_method_list = ['leaf','eom']
             hdbscan_dict={'min_cluster_size':5, 'metric':'euclidean','alpha':1.0, 'min_samples':1,
@@ -467,3 +481,53 @@ class neuron_set:
             result_snn.set_index('idx',inplace=True)  
             result_DF = result_snn.copy()
         return result_DF.copy()
+
+    def fre_Matrix(self, fre_M, cluster_method, para_input):
+        '''
+        :param fre_M: a square DataFrame with same row and col name. Here index is same with self.UMAP
+        :param cluster_method: a str indicating the cluster method
+        :param param para_input: a dataframe at least with column 'parameter' or a dictionary
+        :return: a square array with each element being 0 or 1
+        ''' 
+        if type(para_input) == dict:
+            para_chosen = para_input
+        elif type(para_input) ==pd.DataFrame:
+            para_chosen = eval(para_input.loc[para_input.index.tolist()[randrange(para_input.shape[0])],'parameter'])
+        else:
+            print('Input parameters for coclustering must be either dictionary of pandas DataFrame containing all parameters')
+        clusterL = self.metadata.index[random.sample(range(0,self.metadata.shape[0]), int(self.metadata.shape[0]*0.95))]
+        _ = self.get_clusters(method =cluster_method,karg_dict = para_chosen,neuron_list =clusterL)
+        Crange, Ccounts = np.unique(self.metadata.loc[clusterL,'Cluster'], return_counts = True)
+        for iter_C in Crange:
+            selected_row = self.metadata.loc[clusterL,:]
+            selected_row = selected_row[selected_row["Cluster"]==iter_C]
+            Clist = selected_row.index.tolist()
+            fre_M.loc[Clist,Clist] = fre_M.loc[Clist,Clist] + 1
+        return fre_M.values
+
+
+    def para_cocluster(self, cluster_method,corenum, run_num, para_input):
+        '''
+        :param cluster_method: a str indicating the cluster method
+        :param para_input: a dataframe at least with column 'parameter' or a dictionary
+        :param corenum: an int indicating number of cores to use
+        :param run_num: number of co-clustering
+        :return: a square array with each element indicating number of cocluster within run_num
+        '''    
+        start = time.perf_counter ()
+        start=time.time()
+        cores = corenum#multiprocessing.cpu_count()
+        pool = multiprocessing.Pool(processes=cores)
+        fre_M_t = pd.DataFrame(index = self.UMAP.index, columns =self.UMAP.index)
+        fre_M_t [fre_M_t.isnull()]=0
+        pool_list=[]
+        result_list=[]
+        for i in range(run_num):
+            pool_list.append(pool.apply_async(self.fre_Matrix, (fre_M_t, cluster_method, para_input)))
+        result_list=[xx.get() for xx in pool_list]
+        print(sum([xx for xx in result_list]))
+        pool.close()
+        pool.join()
+        elapsed = (time.time() - start)
+        print('Time needed to run Hierarchy is '+ str(elapsed))
+        return sum([xx for xx in result_list])
