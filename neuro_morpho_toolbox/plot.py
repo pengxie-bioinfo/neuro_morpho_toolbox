@@ -267,11 +267,11 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     # Plot cells
     linewidth = 0.7
     alpha = 0.7
-    if color.lower() == "single_cell":
+    if color.lower() == "single_cell" or color.lower() == "soma":
         single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
     if color.lower() == "celltype":
         celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="spectral", return_str=False)
-    if color.lower() == "cluster":
+    if color.lower() == "cluster" or color.lower() == "majorsoma":
         cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
 
     # Option 1: Soma-only mode
