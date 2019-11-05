@@ -385,7 +385,7 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
     return hdbscan.HDBSCAN(min_cluster_size = min_cluster_size_value, min_samples = min_samples_value, 
                            metric = metric_value, alpha = alpha_value, p = p_value, 
                            algorithm = algorithm_value, leaf_size = leaf_size_value, memory=Memory(location=None), 
-                           approx_min_span_tree=True, gen_min_span_tree=False, core_dist_n_jobs= None, 
+                           approx_min_span_tree=True, gen_min_span_tree=False, core_dist_n_jobs= 1, 
                            cluster_selection_method = cluster_selection_method_value, allow_single_cluster=False, 
                            prediction_data=False, match_reference_implementation=False).fit(x.astype(np.float64)).labels_
 
