@@ -460,5 +460,6 @@ def qualitative_scatter(x, y, c, palette='Spectral', max_colors=25):
                         ax=cur_ax)
     return fig
 
-
+def border_line(view, position, regions=None, ax=None):
+    return
 
