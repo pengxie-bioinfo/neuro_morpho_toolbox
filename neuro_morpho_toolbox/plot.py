@@ -9,7 +9,7 @@ import time
 #import chart_studio.plotly as py
 import plotly.offline as po
 import plotly.graph_objs as go
-
+import neuro_morpho_toolbox as nmt
 import seaborn as sns
 
 # Global variables
@@ -20,6 +20,8 @@ u_color_by = ['SingleCell', 'CellType', 'Subtype', 'Cluster', 'nblast']
 view_idx = dict(zip(u_views, [0, 1, 2]))
 view_axis = dict(zip(u_views, ["X", "Y", "Z"]))
 
+# 6-Nearest Neighbor Atlas with selected CCF ID on 
+ccf_Contour = np.multiply(nmt.ccfArray,nmt.Contour01)
 ####################################################################################
 # Color settings
 ####################################################################################
@@ -267,11 +269,11 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     # Plot cells
     linewidth = 0.7
     alpha = 0.7
-    if color.lower() == "single_cell":
+    if color.lower() == "single_cell" or color.lower() == "soma":
         single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
     if color.lower() == "celltype":
         celltype_color_dict = get_group_colors(metadata=metadata, group_by="CellType", palette="spectral", return_str=False)
-    if color.lower() == "cluster":
+    if color.lower() == "cluster" or color.lower() == "majorsoma":
         cluster_color_dict = get_group_colors(metadata=metadata, group_by="Cluster", palette="paired", return_str=False)
 
     # Option 1: Soma-only mode
@@ -460,5 +462,61 @@ def qualitative_scatter(x, y, c, palette='Spectral', max_colors=25):
                         ax=cur_ax)
     return fig
 
+def border_line(view, position, regions=None, ax=None):
+    margin=0.05
+    dpi=80
+    enlarge=1.5
+    alpha=0.5
+    ccf_annotation = nmt.annotation
+    # Background image
+    nda = np.empty([0, 0])
+    xspace = 0
+    yspace = 0
+    if view.lower() == "coronal":
+        nda = (np.max(ccf_annotation.array, axis=0) > 0)  # 3D -> 2D projection
+        xspace = ccf_annotation.space['z']
+        yspace = ccf_annotation.space['y']
+    if view.lower() == "horizontal":
+        nda = (np.max(ccf_annotation.array, axis=1) > 0)
+        xspace = ccf_annotation.space['z']
+        yspace = ccf_annotation.space['x']
+    if view.lower() == "sagittal":
+        nda = (np.max(ccf_annotation.array, axis=2) > 0).transpose()
+        xspace = ccf_annotation.space['y']
+        yspace = ccf_annotation.space['x']
 
+    xsize = nda.shape[1]
+    ysize = nda.shape[0]
 
+    # Figure settings
+    if ax is None:
+        figsize = (1 + margin) * xsize * enlarge / dpi, (1 + margin) * ysize * enlarge / dpi
+        fig = plt.figure(figsize=figsize, dpi=dpi)
+        # Make the axis the right size...
+        ax = fig.add_axes([margin, margin, 1 - 2 * margin, 1 - 2 * margin])
+
+    extent = (0, xsize * xspace, ysize * yspace, 0)
+    ax.imshow(nda, cmap="Greys", alpha=0.2, extent=extent)
+    if regions != None:
+        x_range = np.array([])
+        y_range = np.array([])
+        if view.lower() == "coronal":    #x   z,y
+            assert position < nmt.annotation.array.shape[0],"Input position must within the brain region"
+            for iter_Region in regions:
+                if type(iter_Region) == str:
+                    x_range = np.append(x_range,np.where(ccf_Contour[position,:,:] == nmt.bs.name_to_id(iter_Region))[1])
+                    y_range = np.append(y_range,np.where(ccf_Contour[position,:,:] == nmt.bs.name_to_id(iter_Region))[0])
+        if view.lower() == "horizontal": #y z,x
+            assert position < nmt.annotation.array.shape[1],"Input position must within the brain region"
+            for iter_Region in regions:
+                if type(iter_Region) == str:
+                    x_range = np.append(x_range,np.where(ccf_Contour[:,position,:] == nmt.bs.name_to_id(iter_Region))[1])
+                    y_range = np.append(y_range,np.where(ccf_Contour[:,position,:] == nmt.bs.name_to_id(iter_Region))[0])
+        if view.lower() == "sagittal":   #z  y,x
+            assert position < nmt.annotation.array.shape[2],"Input position must within the brain region"
+            for iter_Region in regions:
+                if type(iter_Region) == str:
+                    x_range = np.append(x_range,np.where(ccf_Contour[:,:,position] == nmt.bs.name_to_id(iter_Region))[1])
+                    y_range = np.append(y_range,np.where(ccf_Contour[:,:,position] == nmt.bs.name_to_id(iter_Region))[0])
+        ax.scatter(xspace * x_range, yspace* y_range, marker="o",s=3)
+    return

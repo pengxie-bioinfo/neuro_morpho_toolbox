@@ -49,6 +49,14 @@ else:
 end = time.time()
 print("Loading time: %.2f" % (end-start))
 
+print("Loading selected CCF Atlas and Contour data...")
+start = time.time()
+saved_contour = package_path+"data/CCF_6_01.pickle"
+Contour01 = pickle.load(open(saved_contour, 'rb'))[0]==1
+saved_ccf25 = package_path+"data/ccf_25.pickle"
+[ccfArray] = pickle.load(open(saved_ccf25, 'rb'))
+end = time.time()
+print("Loading time: %.2f" % (end-start))
 
 from .swc import neuron
 from .neuron_features import features, projection_features, soma_features, dendrite_features, lm_dendrite_features, lm_axon_features

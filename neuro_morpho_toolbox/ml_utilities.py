@@ -5,7 +5,11 @@ import matplotlib.pyplot as plt
 from scipy.spatial import distance
 from joblib import Memory
 import os
+from scipy.cluster import hierarchy
+import random
 import re
+import multiprocessing
+import time
 import pickle
 from timeit import default_timer as timer
 from sklearn.preprocessing import scale
@@ -385,7 +389,7 @@ def get_clusters_hdbscan_clustering(x,hdbscan_dict):
     return hdbscan.HDBSCAN(min_cluster_size = min_cluster_size_value, min_samples = min_samples_value, 
                            metric = metric_value, alpha = alpha_value, p = p_value, 
                            algorithm = algorithm_value, leaf_size = leaf_size_value, memory=Memory(location=None), 
-                           approx_min_span_tree=True, gen_min_span_tree=False, core_dist_n_jobs=4, 
+                           approx_min_span_tree=True, gen_min_span_tree=False, core_dist_n_jobs= 1, 
                            cluster_selection_method = cluster_selection_method_value, allow_single_cluster=False, 
                            prediction_data=False, match_reference_implementation=False).fit(x.astype(np.float64)).labels_
 
@@ -486,231 +490,19 @@ def get_co_cluster(x, cell_names, ratio_resample=0.85, n_refeature=100,
 #     #     g.savefig("../Figure/Heatmap_CoCluster_AllNeurons.pdf")
 #     return
 
-def pickCLUSTERpara(method,selected_list):
-    if len(selected_list) >0:
-        print('Will calculate ARI for '+ str(len(selected_list) ) + ' neurons')
-    result_DF = pd.DataFrame()
-    method_list = ['kmeans','snn','hdbscan','hierarchy','dbscan']
-    assert method in method_list, "Should be one of "+str(method_list)
-    colname = ['ARI','NumCluster','parameter']
-    if method.lower() == 'hierarchy':
-        #%% Store the result of Hierarchy
-        result_hier = pd.DataFrame(columns = colname)
-        L_method_list=['single', 'complete','average','weighted','centroid','median','ward']
-        L_metric_list=['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine',
-                       'dice', 'euclidean', 'hamming', 'jaccard', 'kulsinski', 
-                       'mahalanobis', 'matching','minkowski','rogerstanimoto', 'russellrao',
-                       'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean']
-
-        criterionH_list=['inconsistent','distance','maxclust','monocrit','maxclust_monocrit']
-
-        hier_dict={'L_method':'single', 'L_metric':'euclidean','criterionH':'inconsistent', 'depth':2,'R':None,
-                   't':0.9,'optimal_ordering':False,'colR':3}
-        for L_methodidx in L_method_list:
-            hier_dict.update(L_method = L_methodidx)
-            for L_metricidx in L_metric_list:
-                hier_dict.update(L_metric = L_metricidx )
-                # so far the parameter to generate the linkage array is set
-                if L_methodidx == 'centroid' or L_methodidx == 'median' or L_methodidx == 'ward':
-                    if L_metricidx != 'euclidean':
-                        continue         
-                for criterionidx in criterionH_list:
-                    hier_dict.update(criterionH = criterionidx )   
-                    if criterionidx == 'inconsistent' or criterionidx == 'distance':
-                        for t_iter in  np.arange(0,1.6,0.05)  : 
-                            hier_dict.update(t = t_iter) 
-                            if criterionidx == 'inconsistent':
-                                for depth_iter in range(2,16):
-                                    hier_dict.update(depth = depth_iter) 
-                                    _ = ns. get_clusters(method='Hierarchy',karg_dict=hier_dict)
-                                    if len(selected_list)==0:
-                                        selected_list = ns.metadata.index.tolist()
-                                    tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
-                                                                          ns.metadata.loc[selected_list,'Cluster'])
-                                    tempDF = pd.DataFrame([tempARI, 
-                                                           len(list(ns.metadata.groupby('Cluster'))),
-                                                           str(hier_dict)]).T.copy()
-                                    tempDF.columns=colname
-                                    print(str(hier_dict))
-                                    result_hier = result_hier.append(tempDF) 
-                            elif criterionidx == 'distance':
-                                _ = ns. get_clusters(method='Hierarchy',karg_dict=hier_dict)
-                                tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
-                                                                          ns.metadata.loc[selected_list,'Cluster'])
-                                tempDF = pd.DataFrame([tempARI, 
-                                                       len(list(ns.metadata.groupby('Cluster'))),
-                                                       str(hier_dict)]).T.copy()
-                                tempDF.columns=colname
-                                print(str(hier_dict))
-                                result_hier = result_hier.append(tempDF) 
-                    if criterionidx == 'maxclust' or criterionidx == 'maxclust_monocrit':
-                        for t_iter in  range(20,51): 
-                            hier_dict.update(t = t_iter) 
-                            _ = ns. get_clusters(method='Hierarchy',karg_dict=hier_dict)
-                            tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
-                                                                          ns.metadata.loc[selected_list,'Cluster'])
-                            tempDF = pd.DataFrame([tempARI, 
-                                                   len(list(ns.metadata.groupby('Cluster'))),
-                                                   str(hier_dict)]).T.copy()
-                            tempDF.columns=colname
-                            print(str(hier_dict))
-                            result_hier = result_hier.append(tempDF) 
-                               
-        idx_hier = ['Hier'+str(x) for x in range(result_hier.shape[0])]    
-        result_hier['idx'] = idx_hier
-        result_hier.set_index('idx',inplace=True)  
-        result_DF = result_hier.copy()
-        
-    if method.lower() == 'kmeans':
-        result_kmeans = pd.DataFrame(columns = colname)
-        init_list=['k-means++','random']
-        algorithm_list = ['auto','full','elkan']
-        precompute_distances_list = ['auto', True, False]
-        n_init_list=['braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation', 'cosine',
-                       'dice', 'euclidean', 'hamming', 'jaccard', 'kulsinski', 
-                       'mahalanobis', 'matching','minkowski','rogerstanimoto', 'russellrao',
-                       'seuclidean', 'sokalmichener', 'sokalsneath', 'sqeuclidean']
-        criterionH_list='inconsistent','distance','maxclust','monocrit','maxclust_monocrit'
-        kmeans_dict={'n_clusters':20, 'init':'k-means++', 'n_init':10, 'max_iter':300, 'tol':0.0001,
-                     'precompute_distances':'auto', 'verbose':0, 'random_state':None,'copy_x': True,
-                     'n_jobs':12, 'algorithm':'auto'}
-        for init_idx in init_list:
-            kmeans_dict.update(init = init_idx)
-            for algorithm_idx in algorithm_list:
-                kmeans_dict.update(algorithm = algorithm_idx )
-                for precompute_distances_idx in precompute_distances_list:
-                    kmeans_dict.update(precompute_distances = precompute_distances_idx )
-                    for n_clustersidx in range(3,45):
-                        kmeans_dict.update(n_clusters = n_clustersidx)     
-                        for n_initidx in range(7,15):
-                            kmeans_dict.update(n_init = n_initidx) 
-                            for tol_idx in np.exp(-np.arange(2,4,0.2)):
-                                kmeans_dict.update(tol = tol_idx) 
-                                print(kmeans_dict)
-                                _ = ns. get_clusters(method='Kmeans',karg_dict=kmeans_dict)
-                                tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
-                                                                          ns.metadata.loc[selected_list,'Cluster'])
-                                tempDF = pd.DataFrame([tempARI, 
-                                                       len(list(ns.metadata.groupby('Cluster'))),
-                                                       str(kmeans_dict)]).T.copy()
-                                tempDF.columns=colname
-                                print(str(kmeans_dict))
-                                result_kmeans = result_kmeans.append(tempDF)         
-        idx_kmeans = ['KMeans'+str(x) for x in range(result_kmeans.shape[0])]    
-        result_kmeans['idx'] = idx_kmeans
-        result_kmeans.set_index('idx',inplace=True)       
-        result_DF = result_kmeans.copy()
-        
-    if method.lower() == 'dbscan':
-        result_dbscan = pd.DataFrame(columns = colname)
-        algorithm_list = ['auto','ball_tree', 'kd_tree', 'brute']# 
-         #
-        metriclist = [ 'braycurtis', 'canberra', 'chebyshev', 'cityblock', 'correlation','euclidean', 'cosine',
-                      'dice','hamming', 'jaccard', 'kulsinski', 'matching','minkowski','rogerstanimoto','russellrao','sokalmichener', 'sokalsneath']
-        dbscan_dict={'eps':20, 'min_samples':5, 'metric':'euclidean','metric_params':None, 'algorithm':'auto', 
-                     'leaf_size':30, 'p':None,'n_jobs':12}
-        for algorithm_idx in algorithm_list:
-            dbscan_dict.update(algorithm = algorithm_idx )
-            for metric_iter in metriclist:
-                dbscan_dict.update(metric= metric_iter)
-                if algorithm_idx == 'ball_tree' and metric_iter in ['correlation','cosine','sqeuclidean']:
-                    continue
-                if algorithm_idx == 'kd_tree' and metric_iter not in ['chebyshev', 'cityblock', 'euclidean',
-                                                                                   'infinity', 'l1', 'l2', 'manhattan',
-                                                                                  'minkowski', 'p']:
-                    continue
-                if algorithm_idx == 'brute' and metric_iter in ['haversine','wminkowski', 'mahalanobis','infinity']:
-                    continue
-                if metric_iter in ['wminkowski', 'minkowski']:
-                    p_iter = randrange(1,10)
-                    dbscan_dict.update(p = p_iter)
-                    while metric_iter == 'minkowski' and p_iter == 1:
-                        p_iter = randrange(2,10)
-                        dbscan_dict.update(p = p_iter)
-                for epsidx in np.exp(-np.arange(0,4,0.5)):
-                    dbscan_dict.update(eps = epsidx)
-                    for min_samples_iter in range(5,10):
-                        dbscan_dict.update(min_samples = min_samples_iter)
-                        for leaf_size_iter in range(25,35):
-                            dbscan_dict.update(leaf_size = leaf_size_iter)
-                            _ = ns. get_clusters(method='DBSCAN',karg_dict=dbscan_dict)
-                            tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
-                                                                          ns.metadata.loc[selected_list,'Cluster'])
-                            tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(dbscan_dict)]).T.copy()
-                            tempDF.columns=colname
-                            print(str(dbscan_dict))
-                            result_dbscan = result_dbscan.append(tempDF)        
-        idx_dbscan = ['DBSCAN'+str(x) for x in range(result_dbscan.shape[0])]    
-        result_dbscan['idx'] = idx_dbscan
-        result_dbscan.set_index('idx',inplace=True)     
-        result_DF = result_dbscan.copy()
-        
-    if method.lower() == 'hdbscan':
-        result_hdbscan = pd.DataFrame(columns = colname)
-        #
-        metric_list = [ 'euclidean','minkowski', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurtis', 'canberra',
-                       'chebyshev','correlation','dice', 'hamming', 'jaccard','kulsinski', 'matching', 
-                       'rogerstanimoto', 'russellrao','sokalmichener', 'sokalsneath', 'sqeuclidean', 'yule']
-        
-    
-        algorithm_list = ['best', 'generic','prims_kdtree','boruvka_kdtree']#, 
-        cluster_selection_method_list = ['leaf','eom']
-        hdbscan_dict={'min_cluster_size':5, 'metric':'euclidean','alpha':1.0, 'min_samples':1,
-                      'p':2,'algorithm':'best', 'leaf_size':40, 'approx_min_span_tree':True,
-                      'gen_min_span_tree':False,'core_dist_n_jobs':4,'cluster_selection_method':'eom',
-                      'allow_single_cluster': False,'prediction_data':False,
-                      'match_reference_implementation':False}
-
-        for algorithm_idx in algorithm_list:
-            hdbscan_dict.update(algorithm = algorithm_idx)
-            for metric_idx in metric_list:
-                if algorithm_idx=='boruvka_kdtree' and metric_idx in['braycurtis','canberra','dice','hamming',
-                                                                     'jaccard','kulsinski','matching','rogerstanimoto',
-                                                                     'russellrao','sokalmichener', 'sokalsneath']:
-                    continue
-                hdbscan_dict.update(metric = metric_idx)
-                for cluster_selection_method_idx in cluster_selection_method_list:
-                    hdbscan_dict.update(cluster_selection_method = cluster_selection_method_idx )
-                    for alpha_idx in np.arange(0.8,1.5,0.1):
-                        hdbscan_dict.update(alpha = alpha_idx)
-                        for min_samples_iter in range(1,10):
-                            hdbscan_dict.update(min_samples = min_samples_iter)
-                            #print(hdbscan_dict)
-                            _ = ns. get_clusters(method='HDBSCAN',karg_dict=hdbscan_dict)
-                            tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
-                                                                          ns.metadata.loc[selected_list,'Cluster'])
-                            tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(hdbscan_dict)]).T.copy()
-                            tempDF.columns = colname
-                            print(str(hdbscan_dict))
-                            result_hdbscan = result_hdbscan.append(tempDF)     
-
-        idx_hdbscan = ['HDBSCAN'+str(x) for x in range(result_hdbscan.shape[0])]    
-        result_hdbscan['idx'] = idx_hdbscan
-        result_hdbscan.set_index('idx',inplace=True)       
-        result_DF = result_hdbscan.copy()
-    if method.lower() == 'snn':
-        metric_list = ['sqeuclidean','euclidean','minkowski', 'l2', 'l1', 'manhattan', 'cityblock', 'braycurtis',
-                       'canberra','chebyshev']
-        snn_dict = {'knn':5, 'metric':'minkowski','method':'FastGreedy'}
-        result_snn= pd.DataFrame(columns = colname)
-        for knn_iter in range(3,30):
-            snn_dict.update(knn =knn_iter)
-            for metric_idx in metric_list:
-                snn_dict.update(metric = metric_idx)
-                _ = ns. get_clusters(method='SNN_community',karg_dict=snn_dict)
-                tempARI = metrics.adjusted_rand_score(ns.metadata.loc[selected_list,'CellType'],
-                                                                          ns.metadata.loc[selected_list,'Cluster'])
-                tempDF = pd.DataFrame([tempARI, len(list(ns.metadata.groupby('Cluster'))),str(snn_dict)]).T.copy()
-                tempDF.columns=colname
-                print(str(snn_dict))
-                result_snn = result_snn.append(tempDF)
-        idx_snn = ['SNN'+str(x) for x in range(result_snn.shape[0])]    
-        result_snn['idx'] = idx_snn
-        result_snn.set_index('idx',inplace=True)  
-        result_DF = result_snn.copy()
-    return result_DF.copy()
-
 def disCal(SOMA_raw,Contour_01,Array_ID, near_n, flipF = True):
+    '''
+    :param SOMA_raw: a dataframe of soma feature: self.features['soma_features'].raw_data
+    :param Contour_01: an array, =1 for contour points, = 0 for others
+    :param near_n: number of closest contour points to consider
+    :param flag: to indicate whether flip the soma location or not. Defalt is True
+    :return: a DataFrame with columns ['x', 'y', 'z', 'SqEuclidean', 'min_Euclidean']
+        * The column SqEuclidean will be 'unknown' for region with index 0
+        * The column min_Euclidean will be 0. for region with index 0
+        * The column mean_Euclidean will be 0. for region with index 0
+        * For other regions, the element of SqEuclidean will be a str(list)
+        * For other regions, the element of min/mean_Euclidean will be float
+    ''' 
     assert near_n>0, "The number of nearest contour points should be bigger than 0"
     start = time.time()
     scaledDF = pd.DataFrame()
@@ -748,3 +540,27 @@ def disCal(SOMA_raw,Contour_01,Array_ID, near_n, flipF = True):
     scaledDF = scaledDF.fillna(str([0]))
     #scaledDF['min_Euclidean'] = scaledDF.min_Euclidean.astype(float)
     return scaledDF.copy()
+
+
+def findBESTpara(inputDF,clusterRange,num_return):
+    '''
+    :param inputDF: a dataframe generated by function ns.pickCLUSTERpara, with col ['ARI', 'NumCluster', 'parameter']
+    :param clusterRange: a list containing the upper and lower bound for expected number of cluster
+    :param num_return: a int indicating number of parameters maximizing ARI to return.
+    :return: a square array with each element being 0 or 1
+    ''' 
+    inputDF.drop_duplicates(subset=None, keep='first', inplace=True)
+    [minR,maxR] = clusterRange
+    inputDF = inputDF[inputDF['NumCluster'] >= minR] 
+    inputDF = inputDF[inputDF['NumCluster'] <= maxR] 
+    inputDF.sort_values(by=['ARI'], ascending=False, inplace = True)
+    maxARI_DF = inputDF[inputDF['ARI']==max(inputDF['ARI'])]
+    print('Available parameters are: ')
+    if maxARI_DF.shape[0]>num_return:
+        for i in maxARI_DF.index:
+            print('ARI is ' + str(maxARI_DF.loc[i,'ARI']) + ', and corresponding parameter is '+ str(maxARI_DF.loc[i,'parameter']))
+        return maxARI_DF.copy()
+    outputDF = inputDF.iloc[:min(inputDF.shape[0],num_return+1),:]
+    for i in outputDF.index:
+            print(outputDF.loc[i,'parameter'])
+    return outputDF.copy()
