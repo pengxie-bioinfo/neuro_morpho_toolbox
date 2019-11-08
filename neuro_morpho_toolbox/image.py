@@ -2,7 +2,7 @@ import SimpleITK as sitk
 import numpy as np
 import pickle
 import sparse
-
+import os
 class image:
     '''
     This class is originally defined to load CCF atlas (value of a pixel is the ID of a brain structure)
@@ -36,7 +36,7 @@ class image:
                                      ]
                                     ))
     
-    
+
     def writeNRRD(input_M, IDlist, path, flipF = True):
         '''
         Write interested region in a 3D array to nrrd file, with interested region to be 1
@@ -62,19 +62,5 @@ class image:
         filename = filename +'.nrrd'
         itkimage = sitk.GetImageFromArray(data, isVector=False)
         sitk.WriteImage(itkimage, filename, True) 
-        co_1,co_2,co_3 = np.where(data ==1)
-        if flipF:
-            co_1 = co_1[co_3<=nmt.annotation.size['z']//2]
-            co_2 = co_2[co_3<=nmt.annotation.size['z']//2]
-            co_3 = co_3[co_3<=nmt.annotation.size['z']//2]
-        fig = plt.figure()
-        ax = fig.add_subplot(111, projection="3d")
-        # Plot defining corner points
-        ax.plot(co_1, co_2,co_3, "y.")
-        # Make axis label
-        for i in ["x", "y", "z"]:
-            eval("ax.set_{:s}label('{:s}')".format(i, i))
-        plt.show()
-
-
+        
 
