@@ -176,7 +176,7 @@ class projection_features(features):
     def normalize(self, log=True):
         scaled_data = np.array(self.raw_data) / np.sum(self.raw_data, axis=1).values.reshape(-1,1) * 100000
         if log:
-            scaled_data = np.log(scaled_data+1)
+            scaled_data = np.log(scaled_data+100)
         self.scaled_data = pd.DataFrame(scaled_data, index=self.raw_data.index, columns=self.raw_data.columns)
         return
 

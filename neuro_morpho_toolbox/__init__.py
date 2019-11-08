@@ -1,6 +1,7 @@
 import time
 import os
 import pickle
+import numpy as np
 
 # Custom functions and classes
 from .image import image
@@ -34,9 +35,6 @@ annotation = image(package_path+"data/annotation_25.nrrd")
 end = time.time()
 print("Loading time: %.2f" % (end-start))
 
-
-
-
 print("Loading CCF brain structure data...")
 saved_bs = package_path+"data/BrainStructure_data.pickle"
 start = time.time()
@@ -49,12 +47,21 @@ else:
 end = time.time()
 print("Loading time: %.2f" % (end-start))
 
+
 print("Loading selected CCF Atlas and Contour data...")
 start = time.time()
 saved_contour = package_path+"data/CCF_6_01.pickle"
 Contour01 = pickle.load(open(saved_contour, 'rb'))[0]==1
 saved_ccf25 = package_path+"data/ccf_25.pickle"
-[ccfArray] = pickle.load(open(saved_ccf25, 'rb'))
+if os.path.exists(saved_ccf25):
+    [ccfArray] = pickle.load(open(saved_ccf25, 'rb'))
+else:
+    ccfArray = annotation.array.copy()
+    regionAll, count = np.unique(ccfArray, return_counts=True)
+    regionAll = np.setdiff1d(regionAll,np.array([0]))
+    for iterR in regionAll:
+        ccfArray[ccfArray==int(iterR)] = bs.dict_to_selected[iterR]
+    pickle.dump([ccfArray], open(saved_ccf25, 'wb'))
 end = time.time()
 print("Loading time: %.2f" % (end-start))
 
