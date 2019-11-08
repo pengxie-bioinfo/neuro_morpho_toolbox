@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from scipy.spatial import distance
 from joblib import Memory
 import os
+from scipy.cluster import hierarchy
 import random
 import re
 import multiprocessing
