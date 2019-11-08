@@ -2,7 +2,7 @@ import time
 import os
 import pickle
 import numpy as np
-
+import SimpleITK as sitk
 # Custom functions and classes
 from .image import image
 from .brain_structure import brain_structure
@@ -50,8 +50,14 @@ print("Loading time: %.2f" % (end-start))
 
 print("Loading selected CCF Atlas and Contour data...")
 start = time.time()
+
 saved_contour = package_path+"data/CCF_6_01.pickle"
-Contour01 = pickle.load(open(saved_contour, 'rb'))[0]==1
+if os.path.exists(saved_contour):
+    Contour01 = pickle.load(open(saved_contour, 'rb'))[0]==1
+else:
+    Contour01 = sitk.GetArrayViewFromImage(sitk.ReadImage(package_path+"data/CCF_6_01.nrrd"))
+    pickle.dump([Contour01], open(saved_contour, 'wb'))
+    
 saved_ccf25 = package_path+"data/ccf_25.pickle"
 if os.path.exists(saved_ccf25):
     [ccfArray] = pickle.load(open(saved_ccf25, 'rb'))
