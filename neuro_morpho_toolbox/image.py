@@ -35,10 +35,19 @@ class image:
                                      self.size["z"] * self.space["z"],
                                      ]
                                     ))
-    # input_M is an 3D array, the value at each point is the ID of specific region
-    # path is the destination to store the output
-    # flipF indicates whether illustrating half part of the result or to illustrate the full result. It does not influce the saving result.
+    
+    
     def writeNRRD(input_M, IDlist, path, flipF = True):
+        '''
+        Write interested region in a 3D array to nrrd file, with interested region to be 1
+        :param input_M: an 3D array, the value at each point is the ID of specific region
+        :param IDlist: a list containing interested value
+        :param path: the destination to store the output
+        :param range_y:
+        :param flipF: whether illustrating half part of the result or to illustrate the full result.
+                        It does not influce the saving result.
+        :return: No
+        '''
         assert type(IDlist) ==list, "Please using list to input the interested regionID"
         folder = os.path.exists(path)
         if not folder:         
