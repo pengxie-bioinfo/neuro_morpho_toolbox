@@ -464,7 +464,7 @@ def qualitative_scatter(x, y, c, palette='Spectral', max_colors=25):
                         ax=cur_ax)
     return fig
 
-def border_line(view, position, regions=None, ax=None):
+def border_line(view, position, regions=None, ax=None, bkground_ON = False):
     margin=0.05
     dpi=80
     enlarge=1.5
@@ -498,7 +498,10 @@ def border_line(view, position, regions=None, ax=None):
         ax = fig.add_axes([margin, margin, 1 - 2 * margin, 1 - 2 * margin])
 
     extent = (0, xsize * xspace, ysize * yspace, 0)
-    ax.imshow(nda, cmap="Greys", alpha=0.2, extent=extent)
+    if bkground_ON:
+        ax.imshow(nda, cmap="Greys", alpha=0.0, extent=extent)
+    else:
+        ax.imshow(nda, cmap="Greys", alpha=1.0, extent=extent)
     if regions != None:
         x_range = np.array([])
         y_range = np.array([])
