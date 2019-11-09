@@ -20,8 +20,10 @@ u_color_by = ['SingleCell', 'CellType', 'Subtype', 'Cluster', 'nblast']
 view_idx = dict(zip(u_views, [0, 1, 2]))
 view_axis = dict(zip(u_views, ["X", "Y", "Z"]))
 
+
 # 6-Nearest Neighbor Atlas with selected CCF ID on 
 ccf_Contour = np.multiply(nmt.ccfArray,nmt.Contour01)
+
 ####################################################################################
 # Color settings
 ####################################################################################

@@ -37,7 +37,7 @@ class image:
                                     ))
     
 
-    def writeNRRD(input_M, IDlist, path, flipF = True):
+    def writeNRRD(input_M, IDlist, path):
         '''
         Write interested region in a 3D array to nrrd file, with interested region to be 1
         :param input_M: an 3D array, the value at each point is the ID of specific region

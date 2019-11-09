@@ -76,9 +76,6 @@ class brain_structure:
             child_ids = self.get_all_child_id(cur_region)
             for i in child_ids:
                 self.dict_to_selected[i] = cur_region
-        for cur_region in self.df.index:
-            if cur_region not in self.dict_to_selected.keys():
-                self.dict_to_selected[cur_region] = cur_region
         return
 
     def name_to_id(self, region_name):
