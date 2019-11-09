@@ -60,7 +60,7 @@ class brain_structure:
 
     def get_all_child_id(self, structure_id):
         if type(structure_id) == str:
-            structure_id = nmt.bs.name_to_id(structure_id)
+            structure_id = self.name_to_id(structure_id)
         cur_lvl = self.level.loc[structure_id]
         tp = self.df[self.df[cur_lvl.level]==cur_lvl['Description']]
         return tp.index.tolist()
