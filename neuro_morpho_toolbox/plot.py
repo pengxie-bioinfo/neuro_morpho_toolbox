@@ -525,3 +525,155 @@ def border_line(view, position, regions=None, ax=None, bkground_ON = False):
                     y_range = np.append(y_range,np.where(ccf_Contour[:,:,position] == nmt.bs.name_to_id(iter_Region))[0])
         ax.scatter(xspace * x_range, yspace* y_range, marker="o",s=3)
     return
+
+
+def mergeROI(Rlist, ori_Arr):
+    '''
+    Merge Region of Interest based on input region list
+    :param Rlist: a list including region of interest
+    :param ori_Arr: a 3D array with index on 
+    :return: a 3D array with merging ROI and zeroing out others.
+    ''' 
+    outputArr = np.zeros((ori_Arr.shape))
+    # if the input region is in ID
+    if all(isinstance(x, str) for x in Rlist):
+        Rlist = list(map(nmt.bs.id_to_name, Rlist))
+    for iter_R in Rlist:
+        # print("Loading region " + str(nmt.bs.id_to_name(iter_R)))
+        start = time.time()
+        childL = nmt.bs.get_all_child_id(iter_R)
+        i_p = 0
+        for iter_Child in childL:
+            outputArr[np.where(ori_Arr == iter_Child)] = iter_R
+            i_p = i_p + 1
+            print("Merging child region " + str(nmt.bs.id_to_name(iter_Child)) + " into region " + str(nmt.bs.id_to_name(iter_R)))
+        print("Loading time for region " + str(nmt.bs.id_to_name(iter_R) + " : %.2f" % (end-start)))
+    outputArr = outputArr.astype(np.int16)
+    return outputArr
+              
+def Contour_block6(Temp_arr,x_lower,x_upper,y_lower,y_upper,z_lower,z_upper):#,x_s,y_s,z_s):
+    '''
+    Compute contour coordinates for a given 3D region inside an array based on 6 nearest neighbor
+    :param Temp_arr: a 3D array with ID on
+    :param x_lower: lower bound for axis x
+    :param x_upper: upper bound for axis x
+    :param y_lower: lower bound for axis y
+    :param y_upper: upper bound for axis y
+    :param z_lower: lower bound for axis z
+    :param z_upper: upper bound for axis z
+    :return: a list with every coordinate of contour
+    ''' 
+    mask_Temp = np.zeros((Temp_arr.shape)) 
+    mask_Temp[x_lower:x_upper,y_lower:y_upper,z_lower:z_upper]=1
+    co_1,co_2,co_3 = np.where(np.multiply(mask_Temp,Temp_arr)!=0) 
+    block_list=[]
+    for iter_COR in range(len(co_1)):
+        x_in = co_1[iter_COR]
+        y_in = co_2[iter_COR]
+        z_in = co_3[iter_COR]
+        centerV =  Temp_arr[x_in,y_in, z_in]  
+        x1yz = Temp_arr[min(Temp_arr.shape[0]-1,x_in+1),y_in,z_in]  # +1,0,0
+        x2yz = Temp_arr[max(0,x_in-1),y_in,z_in]                    # -1,0,0
+        xy1z = Temp_arr[x_in,min(Temp_arr.shape[1]-1,y_in+1),z_in]  # 0,+1,0
+        xy2z = Temp_arr[x_in,max(0,y_in-1),z_in]                    # 0,-1,0
+        xyz1 = Temp_arr[x_in,y_in,min(Temp_arr.shape[2]-1,z_in+1)]  # 0,0,+1
+        xyz2 = Temp_arr[x_in,y_in,max(0,z_in-1)]                    # 0,0,-1
+        if not all(v == centerV for v in [x1yz,x2yz,xy1z,xy2z,xyz1,xyz2]):
+            #print(str([centerV,x1yz,x2yz,xy1z,xy2z,xyz1,xyz2]))
+            block_list.append([x_in,y_in,z_in])
+    return (block_list)
+
+def Contour_block14(Temp_arr,x_lower,x_upper,y_lower,y_upper,z_lower,z_upper):#,x_s,y_s,z_s):
+    '''
+    Compute contour coordinates for a given 3D region inside an array based on 14 nearest neighbor
+    :param Temp_arr: a 3D array with ID on
+    :param x_lower: lower bound for axis x
+    :param x_upper: upper bound for axis x
+    :param y_lower: lower bound for axis y
+    :param y_upper: upper bound for axis y
+    :param z_lower: lower bound for axis z
+    :param z_upper: upper bound for axis z
+    :return: a list with every coordinate of contour
+    ''' 
+    mask_Temp = np.zeros((Temp_arr.shape)) 
+    mask_Temp[x_lower:x_upper,y_lower:y_upper,z_lower:z_upper]=1
+    co_1,co_2,co_3 = np.where(np.multiply(mask_Temp,Temp_arr)!=0) 
+    block_list=[]
+    for iter_COR in range(len(co_1)):
+        x_in = co_1[iter_COR]
+        y_in = co_2[iter_COR]
+        z_in = co_3[iter_COR]
+        centerV =  Temp_arr[x_in,y_in, z_in]  
+        x1yz = Temp_arr[min(Temp_arr.shape[0]-1,x_in+1),y_in,z_in]  # +1,0,0
+        x2yz = Temp_arr[max(0,x_in-1),y_in,z_in]                    # -1,0,0
+        xy1z = Temp_arr[x_in,min(Temp_arr.shape[1]-1,y_in+1),z_in]  # 0,+1,0
+        xy2z = Temp_arr[x_in,max(0,y_in-1),z_in]                    # 0,-1,0
+        xyz1 = Temp_arr[x_in,y_in,min(Temp_arr.shape[2]-1,z_in+1)]  # 0,0,+1
+        xyz2 = Temp_arr[x_in,y_in,max(0,z_in-1)]                    # 0,0,-1
+        x1y1z = Temp_arr[max(0,x_in-1),max(0,y_in-1),z_in]    
+        x1y2z = Temp_arr[max(0,x_in-1),min(Temp_arr.shape[1]-1,y_in+1),z_in]    
+        x2y1z = Temp_arr[min(Temp_arr.shape[0]-1,x_in+1),max(0,y_in-1),z_in]    
+        x2y2z = Temp_arr[min(Temp_arr.shape[0]-1,x_in+1),min(Temp_arr.shape[1]-1,y_in+1),z_in]   
+        
+        xy1z1 = Temp_arr[x_in,max(0,y_in-1),max(0,z_in-1)]                    
+        xy2z1 = Temp_arr[x_in,min(Temp_arr.shape[1]-1,y_in+1),max(0,z_in-1)]  
+        xy1z2 = Temp_arr[x_in,max(0,y_in-1),min(Temp_arr.shape[2]-1,z_in+1)]                    
+        xy2z2 = Temp_arr[x_in,min(Temp_arr.shape[1]-1,y_in+1),min(Temp_arr.shape[2]-1,z_in+1)]  
+        
+        x1yz1 = Temp_arr[max(0,x_in-1),y_in,max(0,z_in-1)]                    
+        x1yz2 = Temp_arr[max(0,x_in-1),y_in,min(Temp_arr.shape[2]-1,z_in+1)]  
+        x2yz1 = Temp_arr[min(Temp_arr.shape[0]-1,x_in+1),y_in,max(0,z_in-1)]                    
+        x2yz2 = Temp_arr[min(Temp_arr.shape[0]-1,x_in+1),y_in,min(Temp_arr.shape[2]-1,z_in+1)] 
+        
+        if not all(v == centerV for v in [x1yz,x2yz,xy1z,xy2z,xyz1,xyz2,x1y1z,x1y2z,x2y1z,x2y2z,xy1z1,xy2z1,
+                                          xy1z2,xy2z2,x1yz1,x1yz2,x2yz1,x2yz2]):
+            block_list.append([x_in,y_in,z_in])
+    return (block_list)
+
+def contourExtract(input_Arr, num_neighbor = 6, ROI_list = []):
+    '''
+    :param input_Arr: a 3D array with ID on
+    :param num_neighbor: will extract contour based on number of neighbors, can be 6 or 14
+    :return: a square array with each element being 0 or 1
+    ''' 
+    if len(ROI_list)!=0:
+        input_Arr =  mergeROI(ROI_list, input_Arr)
+    mergeROI(Rlist, ori_Arr)
+    assert int (num_neighbor) == 6 or int (num_neighbor) == 14, "input number of neighbors to be considered should be either 6 or 14"
+    x_block = [range(input_Arr.shape[0])[i:i + 30] for i in range(0, input_Arr.shape[0], 30)]
+    y_block = [range(input_Arr.shape[1])[i:i + 30] for i in range(0, input_Arr.shape[1], 30)]
+    z_block = [range(input_Arr.shape[2])[i:i + 30] for i in range(0, input_Arr.shape[2], 30)]
+    start = time.perf_counter ()
+    start=time.time()
+    result_list=[]   
+    temp_array = input_Arr.copy()
+    for iter_X in x_block:
+        for iter_Y in y_block:
+            for iter_Z in z_block:
+                x_l = iter_X[0]
+                x_u = iter_X[-1]+1
+                y_l = iter_Y[0]
+                y_u = iter_Y[-1]+1
+                z_l = iter_Z[0]
+                z_u = iter_Z[-1]+1
+                if int (num_neighbor) == 6:
+                    result_list.append(Contour_block6(temp_array,x_l,x_u,y_l,y_u,z_l,z_u))#,iter_X[0],iter_Y[0],iter_Z[0]))
+                else:
+                    result_list.append(Contour_block14(temp_array,x_l,x_u,y_l,y_u,z_l,z_u))#,iter_X[0],iter_Y[0],iter_Z[0]))
+                #print('X range: '+str(iter_X[0])+':'+ str(iter_X[-1]+1)+'; Y range: '+str(iter_Y[0])+':'+ str(iter_Y[-1]+1)+'; Z range: '+str(iter_Z[0])+':'+ str(iter_Z[-1]+1))
+    print('Have finished the checking part')
+    elapsed = (time.time() - start)
+    print('Time needed to run the whole matrix is '+ str(elapsed))
+    result_final =  [x for x in result_list if len(x)>0]
+    Contour_01 = np.zeros((input_Arr.shape))
+    start = time.perf_counter ()
+    start=time.time()
+    for i in result_final:
+        start_sub = time.time()
+        for detail_i in i:
+            Contour_01[detail_i[0],detail_i[1],detail_i[2]]=1
+        elapsed_sub = time.time()-start_sub
+        print('Time needed to generate that block is '+ str(elapsed_sub ))
+    elapsed = (time.time() - start)
+    print('Time needed to generate the contour matrix from idx is '+ str(elapsed))
+    return Contour_01
