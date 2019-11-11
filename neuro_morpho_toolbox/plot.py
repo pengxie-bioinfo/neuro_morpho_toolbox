@@ -11,6 +11,7 @@ import plotly.offline as po
 import plotly.graph_objs as go
 import neuro_morpho_toolbox as nmt
 import seaborn as sns
+from colormap import rgb2hex
 
 # Global variables
 u_views = ['Coronal', 'Horizontal', 'Sagittal']
@@ -53,18 +54,27 @@ def rgb_to_list(rgb_str):
     res = [float(i) / 255 for i in tp.split(", ")]
     return res
 
+def rgb_to_hex(rgb_str):
+    tp = rgb_str.replace("rgb(", "").replace("rgba(", "").replace(")", "")
+    hex = rgb2hex(int(list(tp.split(", "))[0]),int(list(tp.split(", "))[1]),int(list(tp.split(", "))[2]))
+    return hex
 
-def get_group_colors(metadata, group_by="CellType", palette="paired", return_str=False):
+def get_group_colors(metadata, group_by="CellType", palette="paired", return_str=False, return_hex = False):
     assert group_by in metadata.columns.tolist(), "Invalid group_by value."
     assert palette in list(my_palette_dict.keys()), "Invalid palette name."
     u_groups = sorted(list(set(metadata[group_by])))
     color_list = cl.to_rgb(cl.interp(my_palette_dict[palette], len(u_groups)))
+    if return_str and return_hex:
+        color_list = [rgb_to_hex(i) for i in color_list]
     if not return_str:
         color_list = [rgb_to_list(i) for i in color_list]
+        
     group_colors = dict(zip(u_groups, color_list))
     if "Others" in u_groups:
         if not return_str:
             group_colors["Others"] = rgb_to_list('rgb(128, 128, 128)')
+        elif return_str and return_hex:
+            group_colors["Others"] = '#808080'
         else:
             group_colors["Others"] = 'rgb(128, 128, 128)'
     return group_colors
