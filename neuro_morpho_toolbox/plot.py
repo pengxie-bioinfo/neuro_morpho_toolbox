@@ -547,6 +547,7 @@ def mergeROI(Rlist, ori_Arr):
             outputArr[np.where(ori_Arr == iter_Child)] = iter_R
             i_p = i_p + 1
             print("Merging child region " + str(nmt.bs.id_to_name(iter_Child)) + " into region " + str(nmt.bs.id_to_name(iter_R)))
+        end = time.time()
         print("Loading time for region " + str(nmt.bs.id_to_name(iter_R) + " : %.2f" % (end-start)))
     outputArr = outputArr.astype(np.int16)
     return outputArr
@@ -638,7 +639,6 @@ def contourExtract(input_Arr, num_neighbor = 6, ROI_list = []):
     ''' 
     if len(ROI_list)!=0:
         input_Arr =  mergeROI(ROI_list, input_Arr)
-    mergeROI(Rlist, ori_Arr)
     assert int (num_neighbor) == 6 or int (num_neighbor) == 14, "input number of neighbors to be considered should be either 6 or 14"
     x_block = [range(input_Arr.shape[0])[i:i + 30] for i in range(0, input_Arr.shape[0], 30)]
     y_block = [range(input_Arr.shape[1])[i:i + 30] for i in range(0, input_Arr.shape[1], 30)]
