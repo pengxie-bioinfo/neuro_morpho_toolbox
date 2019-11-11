@@ -55,7 +55,8 @@ saved_contour = package_path+"data/CCF_6_01.pickle"
 if os.path.exists(saved_contour):
     Contour01 = pickle.load(open(saved_contour, 'rb'))[0]==1
 else:
-    Contour01 = sitk.GetArrayViewFromImage(sitk.ReadImage(package_path+"data/CCF_6_01.nrrd"))
+    img = sitk.ReadImage(package_path+"data/CCF_6_01.nrrd")
+    Contour01 = sitk.GetArrayViewFromImage(img)
     pickle.dump([Contour01], open(saved_contour, 'wb'))
     
 saved_ccf25 = package_path+"data/ccf_25.pickle"
@@ -63,10 +64,9 @@ if os.path.exists(saved_ccf25):
     [ccfArray] = pickle.load(open(saved_ccf25, 'rb'))
 else:
     ccfArray = annotation.array.copy()
-    regionAll, count = np.unique(ccfArray, return_counts=True)
-    regionAll = np.setdiff1d(regionAll,np.array([0]))
-    for iterR in regionAll:
-        ccfArray[ccfArray==int(iterR)] = bs.dict_to_selected[iterR]
+    for iterID in bs.selected_regions:
+        for i_child in bs.get_all_child_id(iterID):
+            ccfArray[ccfArray == int(i_child)] = iterID
     pickle.dump([ccfArray], open(saved_ccf25, 'wb'))
 end = time.time()
 print("Loading time: %.2f" % (end-start))

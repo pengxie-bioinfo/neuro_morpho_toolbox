@@ -37,7 +37,7 @@ class image:
                                     ))
     
 
-    def writeNRRD(input_M, IDlist, path, flipF = True):
+    def writeNRRD(input_M, path, IDlist = [1]):
         '''
         Write interested region in a 3D array to nrrd file, with interested region to be 1
         :param input_M: an 3D array, the value at each point is the ID of specific region
@@ -54,7 +54,8 @@ class image:
             os.makedirs(path)  
         data = np.zeros(input_M.shape)
         for iterID in IDlist:
-            data[input_M==iterID]=1
+            data[np.where(input_M==iterID)]=1
+        data = data.astype(np.int16)
         filename = str(path)+ '/'
         for iterID in IDlist:
             filename = filename + str(iterID)
