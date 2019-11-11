@@ -278,17 +278,15 @@ class neuron_set:
         row_linkage = hierarchy.linkage(distance.pdist(np.asarray(coclusterDF)), method = paraDF.iloc[0,0])
         col_linkage = hierarchy.linkage(distance.pdist(np.asarray(coclusterDF).T), method = paraDF.iloc[0,0])
         cur_clusters = fcluster(row_linkage ,t,criterion='maxclust')
-        result_DF = pd.DataFrame(index = coclusterDF.index)
-        result_DF.loc[:,'ID'] = coclusterDF.index.tolist()
-        result_DF.loc[:,'Cluster'] = ['C' + str(i) for i in cur_clusters]          
+        self.metadata.loc[:,'Cluster'] = ['C' + str(i) for i in cur_clusters]               
         tempARI = metrics.adjusted_rand_score(self.metadata.loc[selected_list,'CellType'],
-                                                                                result_DF.loc[selected_list,'Cluster'])
+                                                                                self.metadata.loc[selected_list,'Cluster'])
 
         print(tempARI)
         sns.clustermap(coclusterDF, row_linkage = row_linkage, col_linkage = col_linkage, row_colors=axis_color,
                     col_colors = axis_color)#, figsize=(13, 13))#, cmap=sns.diverging_palette(h_neg=150, h_pos=275, s=80, l=55, as_cmap=True))    
         #return hierarchy.linkage(distance.pdist(np.asarray(coclusterDF)))
-        return result_DF
+        return 
 
 
     def pickCLUSTERpara(self, method,selected_list= None):
