@@ -364,7 +364,7 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
         end_sub = time.time()
         # print("Single cell's loading time: %.2f" % (end_sub - start_sub))
     end_sum = time.time()
-    print("Total loading time: %.2f" % (end_sum - start_sum))
+    # print("Total loading time: %.2f" % (end_sum - start_sum))
     return
 
 def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5):
