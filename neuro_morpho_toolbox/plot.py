@@ -559,6 +559,7 @@ def mergeROI(Rlist, ori_Arr):
             print("Merging child region " + str(nmt.bs.id_to_name(iter_Child)) + " into region " + str(nmt.bs.id_to_name(iter_R)))
         end = time.time()
         print("Loading time for region " + str(nmt.bs.id_to_name(iter_R) + " : %.2f" % (end-start)))
+        print('\n')
     outputArr = outputArr.astype(np.int16)
     return outputArr
               

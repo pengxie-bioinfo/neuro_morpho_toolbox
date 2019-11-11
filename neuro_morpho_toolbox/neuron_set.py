@@ -4,6 +4,7 @@ from .ml_utilities import *
 import time
 import os
 from sklearn import metrics
+from scipy.cluster import hierarchy
 from scipy.cluster.hierarchy import dendrogram, linkage    
 from neuro_morpho_toolbox import neuron, soma_features, projection_features, dendrite_features, lm_dendrite_features, lm_axon_features
 import neuro_morpho_toolbox as nmt
@@ -246,6 +247,49 @@ class neuron_set:
         self.features['lm_axon_features'].load_from_folder(folder_path)
         self.features['lm_axon_features'].rearrange_by_id(self.names)
         return
+
+
+    def bestCoCluster(self,coclusterDF,axis_color, t = 20, selected_list= None):
+        '''
+        :param coclusterDF: DataFrane if co-clustering result
+        :param axis_color: color for each sample
+        :param t: maximum number of cluster
+        :param selected_list: list indicating reliable neuron index
+        :return: a DataFrame with columns ['ID','Cluster']
+
+        ''' 
+        if selected_list == None:
+                selected_list =coclusterDF.index.tolist()
+        linkmethod = ['single', 'complete','average','weighted','centroid','median','ward']
+        paraDF = pd.DataFrame(columns =['method','CCC'],index = linkmethod)
+        paraDF.loc[:,'method'] = linkmethod
+        for iter_m in linkmethod:
+            Y = distance.pdist(np.asarray(coclusterDF))
+            Z = linkage(Y, method = iter_m)
+            c, coph_dists = hierarchy.cophenet(Z,Y)
+            paraDF.loc[iter_m,'cophentic_correlation_dis'] = c
+        paraDF.sort_values(by='cophentic_correlation_dis', ascending = False, inplace = True)
+        # choose the linkage method which maximizes the cophentic correlation distance
+        if type(axis_color) == dict:
+            colorDF = pd.DataFrame(index = self.metadata.index,data = self.metadata['CellType'], columns = ['CellType'])
+            for iter_idx in colorDF.index:
+                colorDF.loc[iter_idx,'Color'] = axis_color[colorDF.loc[iter_idx,'CellType']]
+            axis_color = colorDF['Color']
+        row_linkage = hierarchy.linkage(distance.pdist(np.asarray(coclusterDF)), method = paraDF.iloc[0,0])
+        col_linkage = hierarchy.linkage(distance.pdist(np.asarray(coclusterDF).T), method = paraDF.iloc[0,0])
+        cur_clusters = fcluster(row_linkage ,t,criterion='maxclust')
+        result_DF = pd.DataFrame(index = coclusterDF.index)
+        result_DF.loc[:,'ID'] = coclusterDF.index.tolist()
+        result_DF.loc[:,'Cluster'] = ['C' + str(i) for i in cur_clusters]          
+        tempARI = metrics.adjusted_rand_score(self.metadata.loc[selected_list,'CellType'],
+                                                                                result_DF.loc[selected_list,'Cluster'])
+
+        print(tempARI)
+        sns.clustermap(coclusterDF, row_linkage = row_linkage, col_linkage = col_linkage, row_colors=axis_color,
+                    col_colors = axis_color)#, figsize=(13, 13))#, cmap=sns.diverging_palette(h_neg=150, h_pos=275, s=80, l=55, as_cmap=True))    
+        #return hierarchy.linkage(distance.pdist(np.asarray(coclusterDF)))
+        return result_DF
+
 
     def pickCLUSTERpara(self, method,selected_list= None):
         '''
