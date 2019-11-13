@@ -249,7 +249,7 @@ class neuron_set:
         return
 
 
-    def bestCoCluster(self,coclusterDF,axis_color, t = 20, selected_list= None):
+    def bestCoCluster(self,coclusterDF,axis_color, t = 20, selected_list= None,plotF = False):
         '''
         :param coclusterDF: DataFrane if co-clustering result
         :param axis_color: color for each sample
@@ -283,10 +283,10 @@ class neuron_set:
                                                                                 self.metadata.loc[selected_list,'Cluster'])
 
         print(tempARI)
-        sns.clustermap(coclusterDF, row_linkage = row_linkage, col_linkage = col_linkage, row_colors=axis_color,
-                    col_colors = axis_color)#, figsize=(13, 13))#, cmap=sns.diverging_palette(h_neg=150, h_pos=275, s=80, l=55, as_cmap=True))    
-        #return hierarchy.linkage(distance.pdist(np.asarray(coclusterDF)))
-        return 
+        if plotF:
+            sns.clustermap(coclusterDF, row_linkage = row_linkage, col_linkage = col_linkage, row_colors=axis_color,
+                        col_colors = axis_color)#, figsize=(13, 13))#, cmap=sns.diverging_palette(h_neg=150, h_pos=275, s=80, l=55, as_cmap=True))    
+        return tempARI
 
 
     def pickCLUSTERpara(self, method,selected_list= None):
