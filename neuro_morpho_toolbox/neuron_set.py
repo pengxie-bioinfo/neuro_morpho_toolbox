@@ -409,11 +409,11 @@ class neuron_set:
                                                         str(kmeans_dict)]).T.copy()
                                     tempDF.columns=colname
                                     print(str(kmeans_dict))
-                                    result_kmeans = result_kmeaself.append(tempDF)         
-            idx_kmeans = ['KMeans'+str(x) for x in range(result_kmeaself.shape[0])]    
+                                    result_kmeans = result_kmeans.append(tempDF)         
+            idx_kmeans = ['KMeans'+str(x) for x in range(result_kmeans.shape[0])]    
             result_kmeans['idx'] = idx_kmeans
-            result_kmeaself.set_index('idx',inplace=True)       
-            result_DF = result_kmeaself.copy()
+            result_kmeans.set_index('idx',inplace=True)       
+            result_DF = result_kmeans.copy()
             
         if method.lower() == 'dbscan':
             result_dbscan = pd.DataFrame(columns = colname)
@@ -524,53 +524,3 @@ class neuron_set:
             result_DF = result_snn.copy()
         return result_DF.copy()
 
-    def fre_Matrix(self, fre_M, cluster_method, para_input):
-        '''
-        :param fre_M: a square DataFrame with same row and col name. Here index is same with self.UMAP
-        :param cluster_method: a str indicating the cluster method
-        :param param para_input: a dataframe at least with column 'parameter' or a dictionary
-        :return: a square array with each element being 0 or 1
-        ''' 
-        if type(para_input) == dict:
-            para_chosen = para_input
-        elif type(para_input) ==pd.DataFrame:
-            para_chosen = eval(para_input.loc[para_input.index.tolist()[randrange(para_input.shape[0])],'parameter'])
-        else:
-            print('Input parameters for coclustering must be either dictionary of pandas DataFrame containing all parameters')
-        clusterL = self.metadata.index[random.sample(range(0,self.metadata.shape[0]), int(self.metadata.shape[0]*0.95))]
-        _ = self.get_clusters(method =cluster_method,karg_dict = para_chosen,neuron_list =clusterL)
-        Crange, Ccounts = np.unique(self.metadata.loc[clusterL,'Cluster'], return_counts = True)
-        for iter_C in Crange:
-            selected_row = self.metadata.loc[clusterL,:]
-            selected_row = selected_row[selected_row["Cluster"]==iter_C]
-            Clist = selected_row.index.tolist()
-            fre_M.loc[Clist,Clist] = fre_M.loc[Clist,Clist] + 1
-        return fre_M.values
-
-
-    def para_cocluster(self, cluster_method,corenum, run_num, para_input):
-        '''
-        :param cluster_method: a str indicating the cluster method
-        :param para_input: a dataframe at least with column 'parameter' or a dictionary
-        :param corenum: an int indicating number of cores to use
-        :param run_num: number of co-clustering
-        :return: a square array with each element indicating number of cocluster within run_num
-        '''    
-        assert type(para_input) == dict or type(para_input) ==pd.DataFrame,"Input parameters for coclustering must be either dictionary of pandas DataFrame containing all parameters"
-        start = time.perf_counter ()
-        start=time.time()
-        cores = corenum#multiprocessing.cpu_count()
-        pool = multiprocessing.Pool(processes=cores)
-        fre_M_t = pd.DataFrame(index = self.UMAP.index, columns =self.UMAP.index)
-        fre_M_t [fre_M_t.isnull()]=0
-        pool_list=[]
-        result_list=[]
-        for i in range(run_num):
-            pool_list.append(pool.apply_async(self.fre_Matrix, (fre_M_t, cluster_method, para_input)))
-        result_list=[xx.get() for xx in pool_list]
-        print(sum([xx for xx in result_list]))
-        pool.close()
-        pool.join()
-        elapsed = (time.time() - start)
-        print('Time needed to run Hierarchy is '+ str(elapsed))
-        return sum([xx for xx in result_list])
