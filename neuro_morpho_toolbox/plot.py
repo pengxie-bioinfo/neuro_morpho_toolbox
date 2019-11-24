@@ -200,6 +200,10 @@ def plot_swc_mpl(segment,
         ax.plot(tp.heng, tp.zong,
                 c=rgb_to_list(color),
                 linewidth=linewidth, alpha=alpha)
+    if isinstance(color, list):
+        ax.plot(tp.heng, tp.zong,
+                c=color,
+                linewidth=linewidth, alpha=alpha)
     tp = tp[(tp["Te"] == 1)]
     ax.scatter(tp.heng, tp.zong,
                c='black',

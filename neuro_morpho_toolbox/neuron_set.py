@@ -11,7 +11,7 @@ import neuro_morpho_toolbox as nmt
 import random
 from random import randrange
 import multiprocessing
-def load_swc_list(swc_path, zyx=False):
+def load_swc_list(swc_path, zyx=False,):
     '''
     load all the swc files under a folder
     :param swc_path:
@@ -37,7 +37,7 @@ def load_swc_list(swc_path, zyx=False):
     return neurons
 
 class neuron_set:
-    def __init__(self, swc_path=None,  zyx=False, lm_features_path = None):
+    def __init__(self, swc_path=None,  zyx=False, lm_features_path = None, skip_projection=False):
         '''
         load all the
         :param path:
@@ -59,7 +59,8 @@ class neuron_set:
         self.features['soma_features'] = sf
         print("Getting projection features...")
         pf = projection_features()
-        pf.load_data_from_neuron_dict(self.neurons)
+        if not skip_projection:
+            pf.load_data_from_neuron_dict(self.neurons)
         self.features['projection_features'] = pf
         # print("Getting dendrite features...")
         # df = dendrite_features()
