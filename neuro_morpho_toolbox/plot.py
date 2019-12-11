@@ -315,13 +315,13 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
                            tp.zong[tp["Te"] == 1].iloc[0],
                            c=[soma_color],
                            marker="o",
-                           s=30)
+                           s=10)
             else:
                 ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
                            tp.zong[tp["Te"] == 1].iloc[0],
                            c=[soma_color],
                            marker="o",
-                           s=30)
+                           s=10)
         return
 
     # Option 2: swc mode
@@ -369,14 +369,14 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
             ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
                        tp.zong[tp["Te"] == 1].iloc[0],
                        c=[soma_color],
-                       marker="*",
-                       s=30)
+                       marker=".",
+                       s=5)
         else:
             ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
                        tp.zong[tp["Te"] == 1].iloc[0],
                        c=[soma_color],
-                       marker="*",
-                       s=30)
+                       marker=".",
+                       s=5)
         end_sub = time.time()
         # print("Single cell's loading time: %.2f" % (end_sub - start_sub))
     end_sum = time.time()
