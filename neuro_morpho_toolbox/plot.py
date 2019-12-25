@@ -478,6 +478,16 @@ def qualitative_scatter(x, y, c, palette='Spectral', max_colors=25):
                         ax=cur_ax)
     return fig
 
+
+def get_single_region_colors(region_list, palette="paired", return_str=False):
+    u_regions = list(set(region_list))
+    color_list = cl.to_rgb(cl.interp(my_palette_dict[palette], len(u_regions)))
+    if not return_str:
+        color_list = [rgb_to_list(i) for i in color_list]
+    group_colors = dict(zip(u_regions, color_list))
+    return group_colors
+
+
 def border_line(view, position, regions=None, ax=None, bkground_ON = False):
     margin=0.05
     dpi=80
@@ -517,27 +527,34 @@ def border_line(view, position, regions=None, ax=None, bkground_ON = False):
     else:
         ax.imshow(nda, cmap="Greys", alpha=0.0, extent=extent)
     if regions != None:
-        x_range = np.array([])
-        y_range = np.array([])
+        regionDIC = get_single_region_colors(regions, palette="paired", return_str=False)
         if view.lower() == "coronal":    #x   z,y
-            assert position < nmt.annotation.array.shape[0],"Input position must within the brain region"
+            #assert position.all() < nmt.annotation.array.shape[0],"Input position must within the brain region"
             for iter_Region in regions:
+                x_range = np.array([])
+                y_range = np.array([])
                 if type(iter_Region) == str:
                     x_range = np.append(x_range,np.where(ccf_Contour[position,:,:] == nmt.bs.name_to_id(iter_Region))[1])
                     y_range = np.append(y_range,np.where(ccf_Contour[position,:,:] == nmt.bs.name_to_id(iter_Region))[0])
+                    ax.scatter(xspace * x_range, yspace* y_range, marker="o",s=0.05,c = regionDIC[iter_Region])
         if view.lower() == "horizontal": #y z,x
-            assert position < nmt.annotation.array.shape[1],"Input position must within the brain region"
+            #assert position.all() < nmt.annotation.array.shape[1],"Input position must within the brain region"
             for iter_Region in regions:
+                x_range = np.array([])
+                y_range = np.array([])
                 if type(iter_Region) == str:
                     x_range = np.append(x_range,np.where(ccf_Contour[:,position,:] == nmt.bs.name_to_id(iter_Region))[1])
                     y_range = np.append(y_range,np.where(ccf_Contour[:,position,:] == nmt.bs.name_to_id(iter_Region))[0])
+                    ax.scatter(xspace * x_range, yspace* y_range, marker="o",s=0.05,c = regionDIC[iter_Region])
         if view.lower() == "sagittal":   #z  y,x
-            assert position < nmt.annotation.array.shape[2],"Input position must within the brain region"
+            #assert position.all() < nmt.annotation.array.shape[2],"Input position must within the brain region"
             for iter_Region in regions:
+                x_range = np.array([])
+                y_range = np.array([])
                 if type(iter_Region) == str:
-                    x_range = np.append(x_range,np.where(ccf_Contour[:,:,position] == nmt.bs.name_to_id(iter_Region))[1])
-                    y_range = np.append(y_range,np.where(ccf_Contour[:,:,position] == nmt.bs.name_to_id(iter_Region))[0])
-        ax.scatter(xspace * x_range, yspace* y_range, marker="o",s=3)
+                    x_range = np.append(x_range,np.where(ccf_Contour[:,:,position] == nmt.bs.name_to_id(iter_Region))[0])
+                    y_range = np.append(y_range,np.where(ccf_Contour[:,:,position] == nmt.bs.name_to_id(iter_Region))[1])
+                    ax.scatter(xspace * x_range, yspace* y_range, marker="o",s=0.05,c = regionDIC[iter_Region])
     return
 
 
