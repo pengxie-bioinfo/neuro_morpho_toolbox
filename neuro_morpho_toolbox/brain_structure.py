@@ -58,9 +58,20 @@ class brain_structure:
                 self.dict_to_selected[i] = cur_region
         return
 
+    def name_to_id(self, region_name):
+        # region_name can be either Abbreviation (checked first) or description
+        tp = self.level[self.level.Abbreviation == region_name]
+        if len(tp) != 0:
+            return tp.index[0]
+        tp = self.level[self.level.Description == region_name]
+        if len(tp) != 0:
+            return tp.index[0]
+        print("Cannot find any regions named %s." % region_name)
+        return -1
+
     def get_all_child_id(self, structure_id):
         if type(structure_id) == str:
-            structure_id = nmt.bs.name_to_id(structure_id)
+            structure_id = self.name_to_id(structure_id)
         cur_lvl = self.level.loc[structure_id]
         tp = self.df[self.df[cur_lvl.level]==cur_lvl['Description']]
         return tp.index.tolist()
@@ -78,16 +89,7 @@ class brain_structure:
                 self.dict_to_selected[i] = cur_region
         return
 
-    def name_to_id(self, region_name):
-        # region_name can be either Abbreviation (checked first) or description
-        tp = self.level[self.level.Abbreviation == region_name]
-        if len(tp) != 0:
-            return tp.index[0]
-        tp = self.level[self.level.Description == region_name]
-        if len(tp) != 0:
-            return tp.index[0]
-        print("Cannot find any regions named %s." % region_name)
-        return -1
+
 
     def id_to_name(self, region_ID):
         # region_name can be either Abbreviation (checked first) or description

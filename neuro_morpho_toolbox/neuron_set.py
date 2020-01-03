@@ -4,13 +4,14 @@ from .ml_utilities import *
 import time
 import os
 from sklearn import metrics
+from scipy.cluster import hierarchy
 from scipy.cluster.hierarchy import dendrogram, linkage    
 from neuro_morpho_toolbox import neuron, soma_features, projection_features, dendrite_features, lm_dendrite_features, lm_axon_features
 import neuro_morpho_toolbox as nmt
 import random
 from random import randrange
 import multiprocessing
-def load_swc_list(swc_path, zyx=False):
+def load_swc_list(swc_path, zyx=False,):
     '''
     load all the swc files under a folder
     :param swc_path:
@@ -36,7 +37,7 @@ def load_swc_list(swc_path, zyx=False):
     return neurons
 
 class neuron_set:
-    def __init__(self, swc_path=None,  zyx=False, lm_features_path = None):
+    def __init__(self, swc_path=None,  zyx=False, lm_features_path = None, skip_projection=False):
         '''
         load all the
         :param path:
@@ -58,7 +59,8 @@ class neuron_set:
         self.features['soma_features'] = sf
         print("Getting projection features...")
         pf = projection_features()
-        pf.load_data_from_neuron_dict(self.neurons)
+        if not skip_projection:
+            pf.load_data_from_neuron_dict(self.neurons)
         self.features['projection_features'] = pf
         # print("Getting dendrite features...")
         # df = dendrite_features()
@@ -247,6 +249,47 @@ class neuron_set:
         self.features['lm_axon_features'].rearrange_by_id(self.names)
         return
 
+
+    def bestCoCluster(self,coclusterDF,axis_color, t = 20, selected_list= None,plotF = False):
+        '''
+        :param coclusterDF: DataFrane if co-clustering result
+        :param axis_color: color for each sample
+        :param t: maximum number of cluster
+        :param selected_list: list indicating reliable neuron index
+        :return: a DataFrame with columns ['ID','Cluster']
+
+        ''' 
+        if selected_list == None:
+                selected_list =coclusterDF.index.tolist()
+        linkmethod = ['single', 'complete','average','weighted','centroid','median','ward']
+        paraDF = pd.DataFrame(columns =['method','CCC'],index = linkmethod)
+        paraDF.loc[:,'method'] = linkmethod
+        for iter_m in linkmethod:
+            Y = distance.pdist(np.asarray(coclusterDF))
+            Z = linkage(Y, method = iter_m)
+            c, coph_dists = hierarchy.cophenet(Z,Y)
+            paraDF.loc[iter_m,'cophentic_correlation_dis'] = c
+        paraDF.sort_values(by='cophentic_correlation_dis', ascending = False, inplace = True)
+        # choose the linkage method which maximizes the cophentic correlation distance
+        if type(axis_color) == dict:
+            colorDF = pd.DataFrame(index = self.metadata.index,data = self.metadata['CellType'], columns = ['CellType'])
+            for iter_idx in colorDF.index:
+                colorDF.loc[iter_idx,'Color'] = axis_color[colorDF.loc[iter_idx,'CellType']]
+            axis_color = colorDF['Color']
+        row_linkage = hierarchy.linkage(distance.pdist(np.asarray(coclusterDF)), method = paraDF.iloc[0,0])
+        col_linkage = hierarchy.linkage(distance.pdist(np.asarray(coclusterDF).T), method = paraDF.iloc[0,0])
+        cur_clusters = fcluster(row_linkage ,t,criterion='maxclust')
+        self.metadata.loc[:,'Cluster'] = ['C' + str(i) for i in cur_clusters]               
+        tempARI = metrics.adjusted_rand_score(self.metadata.loc[selected_list,'CellType'],
+                                                                                self.metadata.loc[selected_list,'Cluster'])
+
+        print(tempARI)
+        if plotF:
+            sns.clustermap(coclusterDF, row_linkage = row_linkage, col_linkage = col_linkage, row_colors=axis_color,
+                        col_colors = axis_color)#, figsize=(13, 13))#, cmap=sns.diverging_palette(h_neg=150, h_pos=275, s=80, l=55, as_cmap=True))    
+        return tempARI
+
+
     def pickCLUSTERpara(self, method,selected_list= None):
         '''
         :param method: a str indicating the cluster method
@@ -367,11 +410,11 @@ class neuron_set:
                                                         str(kmeans_dict)]).T.copy()
                                     tempDF.columns=colname
                                     print(str(kmeans_dict))
-                                    result_kmeans = result_kmeaself.append(tempDF)         
-            idx_kmeans = ['KMeans'+str(x) for x in range(result_kmeaself.shape[0])]    
+                                    result_kmeans = result_kmeans.append(tempDF)         
+            idx_kmeans = ['KMeans'+str(x) for x in range(result_kmeans.shape[0])]    
             result_kmeans['idx'] = idx_kmeans
-            result_kmeaself.set_index('idx',inplace=True)       
-            result_DF = result_kmeaself.copy()
+            result_kmeans.set_index('idx',inplace=True)       
+            result_DF = result_kmeans.copy()
             
         if method.lower() == 'dbscan':
             result_dbscan = pd.DataFrame(columns = colname)
@@ -482,53 +525,3 @@ class neuron_set:
             result_DF = result_snn.copy()
         return result_DF.copy()
 
-    def fre_Matrix(self, fre_M, cluster_method, para_input):
-        '''
-        :param fre_M: a square DataFrame with same row and col name. Here index is same with self.UMAP
-        :param cluster_method: a str indicating the cluster method
-        :param param para_input: a dataframe at least with column 'parameter' or a dictionary
-        :return: a square array with each element being 0 or 1
-        ''' 
-        if type(para_input) == dict:
-            para_chosen = para_input
-        elif type(para_input) ==pd.DataFrame:
-            para_chosen = eval(para_input.loc[para_input.index.tolist()[randrange(para_input.shape[0])],'parameter'])
-        else:
-            print('Input parameters for coclustering must be either dictionary of pandas DataFrame containing all parameters')
-        clusterL = self.metadata.index[random.sample(range(0,self.metadata.shape[0]), int(self.metadata.shape[0]*0.95))]
-        _ = self.get_clusters(method =cluster_method,karg_dict = para_chosen,neuron_list =clusterL)
-        Crange, Ccounts = np.unique(self.metadata.loc[clusterL,'Cluster'], return_counts = True)
-        for iter_C in Crange:
-            selected_row = self.metadata.loc[clusterL,:]
-            selected_row = selected_row[selected_row["Cluster"]==iter_C]
-            Clist = selected_row.index.tolist()
-            fre_M.loc[Clist,Clist] = fre_M.loc[Clist,Clist] + 1
-        return fre_M.values
-
-
-    def para_cocluster(self, cluster_method,corenum, run_num, para_input):
-        '''
-        :param cluster_method: a str indicating the cluster method
-        :param para_input: a dataframe at least with column 'parameter' or a dictionary
-        :param corenum: an int indicating number of cores to use
-        :param run_num: number of co-clustering
-        :return: a square array with each element indicating number of cocluster within run_num
-        '''    
-        assert type(para_input) == dict or type(para_input) ==pd.DataFrame,"Input parameters for coclustering must be either dictionary of pandas DataFrame containing all parameters"
-        start = time.perf_counter ()
-        start=time.time()
-        cores = corenum#multiprocessing.cpu_count()
-        pool = multiprocessing.Pool(processes=cores)
-        fre_M_t = pd.DataFrame(index = self.UMAP.index, columns =self.UMAP.index)
-        fre_M_t [fre_M_t.isnull()]=0
-        pool_list=[]
-        result_list=[]
-        for i in range(run_num):
-            pool_list.append(pool.apply_async(self.fre_Matrix, (fre_M_t, cluster_method, para_input)))
-        result_list=[xx.get() for xx in pool_list]
-        print(sum([xx for xx in result_list]))
-        pool.close()
-        pool.join()
-        elapsed = (time.time() - start)
-        print('Time needed to run Hierarchy is '+ str(elapsed))
-        return sum([xx for xx in result_list])
