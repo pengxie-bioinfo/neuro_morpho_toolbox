@@ -500,8 +500,8 @@ def border_line(view, position, regions=None, ax=None, bkground_ON = False):
     extent = (0, xsize * xspace, ysize * yspace, 0)
     if bkground_ON:
         ax.imshow(nda, cmap="Greys", alpha=0.0, extent=extent)
-    else:
-        ax.imshow(nda, cmap="Greys", alpha=1.0, extent=extent)
+    # else:
+    #     ax.imshow(nda, cmap="Greys", alpha=1.0, extent=extent)
     if regions != None:
         x_range = np.array([])
         y_range = np.array([])
