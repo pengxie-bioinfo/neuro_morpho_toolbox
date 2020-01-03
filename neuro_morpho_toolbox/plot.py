@@ -156,8 +156,7 @@ def swc_to_edges(swc, keep_invalid=True):
     # Invalid types
     res.loc[~res.type.isin([1, 2, 3, 4]), "type"] = 0
     if not keep_invalid:
-		res = res[res.type!=0]
-
+        res = res[res.type!=0]
     # Output
     Xe = res.x.tolist()
     Ye = res.y.tolist()
