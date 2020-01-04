@@ -21,7 +21,10 @@ midline = annotation.size['z'] / 2
 class neuron:
     def __init__(self, file, zyx=False):
         self.file = file
-        self.name = file.split("/")[-1].split(".")[0]
+        if '/' in file:
+            self.name = file.split("/")[-1].split(".")[0]
+        elif '\\' in file: # for windows
+            self.name = file.split("\\")[-1].split(".")[0]
 
         n_skip = 0
         with open(self.file, "r") as f:
