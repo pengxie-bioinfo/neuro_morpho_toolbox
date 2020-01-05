@@ -572,6 +572,7 @@ def mergeROI(Rlist, ori_Arr):
     # if the input region is in ID
     if all(isinstance(x, str) for x in Rlist):
         Rlist = list(map(nmt.bs.name_to_id, Rlist))
+    Rlist = list(map(np.uint32,Rlist))
     for iter_R in Rlist:
         # print("Loading region " + str(nmt.bs.id_to_name(iter_R)))
         start = time.time()
@@ -585,7 +586,7 @@ def mergeROI(Rlist, ori_Arr):
         end = time.time()
         print("Loading time for region " + str(nmt.bs.id_to_name(iter_R) + " : %.2f" % (end - start)))
         print('\n')
-    outputArr = outputArr.astype(np.int16)
+    outputArr = outputArr.astype(np.uint32)
     return outputArr
 
 
