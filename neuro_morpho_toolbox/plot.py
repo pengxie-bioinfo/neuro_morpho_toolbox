@@ -249,7 +249,7 @@ def plot_swc_plotly(swc_name, metadata, segment_dict={}, flip=False, z_size=None
 
 
 def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
-                view="Horizontal",
+                view="Horizontal", linewidth = 0.7,
                 margin=0.05, dpi=80, enlarge=1.5, alpha=0.5, ax=None,
                 color="classical", flip_soma=True):
     assert view in u_views, " ".join((["option 'view_by' should be one of the following: "] + u_views))
@@ -284,9 +284,8 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     extent = (0, xsize * xspace, ysize * yspace, 0)
     ax.imshow(nda, cmap="Greys", alpha=0.2, extent=extent)
 
-    # Plot cells
-    linewidth = 0.7
-    alpha = 0.7
+    # Plot cell
+
     if color.lower() == "single_cell" or color.lower() == "soma":
         single_cell_color_dict = get_singlecell_colors(cell_list, return_str=False)
     if color.lower() == "celltype":
