@@ -2,10 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="30a71dd5-4a88-45c7-8499-b7c19372c668" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuron_features.py" beforeDir="false" afterPath="$PROJECT_DIR$/neuron_features.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/neuron_set.py" beforeDir="false" afterPath="$PROJECT_DIR$/neuron_set.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/swc.py" beforeDir="false" afterPath="$PROJECT_DIR$/swc.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -33,13 +31,13 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="ipynb" value="1" />
-          <entry key="py" value="84" />
+          <entry key="py" value="85" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="IPNB" value="1" />
-          <entry key="Python" value="84" />
+          <entry key="Python" value="85" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
@@ -57,13 +55,15 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/flat_map.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/swc.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1080">
-              <caret line="53" column="24" selection-start-line="53" selection-start-column="24" selection-end-line="53" selection-end-column="24" />
+            <state relative-caret-position="243">
+              <caret line="9" column="11" lean-forward="true" selection-end-line="307" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
+                <marker date="1585734743474" expanded="true" signature="3716:4290" ph="..." />
+                <marker date="1585734743474" expanded="true" signature="13440:13877" ph="..." />
               </folding>
             </state>
           </provider>
@@ -72,8 +72,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/plot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-1284">
-              <caret line="173" column="18" selection-start-line="173" selection-start-column="4" selection-end-line="173" selection-end-column="18" />
+            <state relative-caret-position="-879">
+              <caret line="184" column="18" selection-start-line="184" selection-start-column="18" selection-end-line="184" selection-end-column="18" />
             </state>
           </provider>
         </entry>
@@ -100,7 +100,7 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/image.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="537">
@@ -524,18 +524,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/swc.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="417">
-          <caret line="104" column="51" selection-start-line="104" selection-start-column="51" selection-end-line="104" selection-end-column="51" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <marker date="1585364296532" expanded="true" signature="3464:4038" ph="..." />
-            <marker date="1585364296532" expanded="true" signature="13188:13625" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/flat_map.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1080">
@@ -579,8 +567,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/plot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-1284">
-          <caret line="173" column="18" selection-start-line="173" selection-start-column="4" selection-end-line="173" selection-end-column="18" />
+        <state relative-caret-position="-879">
+          <caret line="184" column="18" selection-start-line="184" selection-start-column="18" selection-end-line="184" selection-end-column="18" />
         </state>
       </provider>
     </entry>
@@ -621,6 +609,18 @@
           <caret line="26" column="39" selection-start-line="26" selection-start-column="39" selection-end-line="26" selection-end-column="39" />
           <folding>
             <element signature="e#0#24#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/swc.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="243">
+          <caret line="9" column="11" lean-forward="true" selection-end-line="307" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <marker date="1585734743474" expanded="true" signature="3716:4290" ph="..." />
+            <marker date="1585734743474" expanded="true" signature="13440:13877" ph="..." />
           </folding>
         </state>
       </provider>
