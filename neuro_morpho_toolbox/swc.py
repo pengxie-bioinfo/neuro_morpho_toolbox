@@ -19,9 +19,10 @@ midline = annotation.size['z'] / 2
 
 
 class neuron:
-    def __init__(self, file, zyx=False):
+    def __init__(self, file, zyx=False, registered=True, scale=None):
         self.file = file
         self.name = file.split("/")[-1].split(".")[0]
+        self.registered = registered
 
         n_skip = 0
         with open(self.file, "r") as f:
@@ -40,26 +41,47 @@ class neuron:
                           usecols=[0, 1, 2, 3, 4, 5, 6],
                           names=names
                           )
+        if scale is not None:
+            swc.x = swc.x * scale
+            swc.y = swc.y * scale
+            swc.z = swc.z * scale
         self.swc = swc
         _ = self.get_soma()
         return
 
     def get_soma(self):
         soma = self.swc[((self.swc.type==1) & (self.swc.parent==-1))]
+        # soma = self.swc[(self.swc.type==1)]
         if len(soma)!=1:
-            print(("Invalid number of soma found: %d" % len(soma)))
+            # print(("Invalid number of soma found: %d" % len(soma)))
             self.soma = pd.DataFrame({"x": np.nan,
                                       "y": np.nan,
-                                      "z": np.nan}, index=[self.name])
+                                      "z": np.nan,
+                                      "region":"unknown"
+                                      }, index=[self.name])
         else:
             soma = pd.DataFrame({"x": soma.x.iloc[0],
                                  "y": soma.y.iloc[0],
-                                 "z": soma.z.iloc[0]}, index=[self.name])
+                                 "z": soma.z.iloc[0],
+                                "region": "unknown"
+                                 },
+                                index=[self.name])
+            # If registered, assign soma region
+            if self.registered:
+                if ((int(soma.x.iloc[0] / annotation.space['x']) >= 0) & (int(soma.x.iloc[0] / annotation.space['x']) < annotation.size['x']) &
+                    (int(soma.y.iloc[0] / annotation.space['y']) >= 0) & (int(soma.y.iloc[0] / annotation.space['y']) < annotation.size['y']) &
+                    (int(soma.z.iloc[0] / annotation.space['z']) >= 0) & (int(soma.z.iloc[0] / annotation.space['z']) < annotation.size['z'])
+                ):
+                    soma_region_id = annotation.array[int(soma.x.iloc[0] / annotation.space['x']),
+                                                      int(soma.y.iloc[0] / annotation.space['y']),
+                                                      int(soma.z.iloc[0] / annotation.space['z'])]
+                    if soma_region_id != 0:
+                        soma.loc[self.name, 'region'] = bs.id_to_name(soma_region_id)
+                if soma.loc[self.name, "z"] < (annotation.micron_size["z"] / 2):
+                    self.hemi = 1
+                else:
+                    self.hemi = 2
             self.soma = soma
-            if soma.loc[self.name, "z"] < (annotation.micron_size["z"]/2):
-                self.hemi = 1
-            else:
-                self.hemi = 2
         return self.soma
 
     def pass_qc(self):
@@ -79,7 +101,8 @@ class neuron:
 
     def get_segments(self):
         # lab = [i for i,name in enumerate(self.swc.index.tolist()) if self.swc.loc[name, "parent"]!=(-1)]
-        child = self.swc[self.swc.parent != (-1)]
+        # child = self.swc[self.swc.parent != (-1)]
+        child = self.swc[self.swc.parent.isin(self.swc.index)]
         parent = self.swc.loc[child.parent]
         rho, theta, phi = cart2pol_3d(np.array(child[["x", "y", "z"]]) - np.array(parent[["x", "y", "z"]]))
         res = pd.DataFrame({"type": child.type,

@@ -51,6 +51,10 @@ print("Loading time: %.2f" % (end-start))
 print("Loading selected CCF Atlas and Contour data...")
 start = time.time()
 
+print("Loading flat_map ...")
+from .flat_map import slice, slice_set
+
+
 saved_contour = package_path+"data/CCF_6_01.pickle"
 if os.path.exists(saved_contour):
     Contour01 = pickle.load(open(saved_contour, 'rb'))[0]==1
@@ -72,6 +76,7 @@ end = time.time()
 print("Loading time: %.2f" % (end-start))
 
 from .swc import neuron
+from .apo import marker
 from .neuron_features import features, projection_features, soma_features, dendrite_features, lm_dendrite_features, lm_axon_features
 from .neuron_set import neuron_set
 from .utilities import *

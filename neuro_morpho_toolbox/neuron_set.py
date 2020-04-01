@@ -11,7 +11,7 @@ import neuro_morpho_toolbox as nmt
 import random
 from random import randrange
 import multiprocessing
-def load_swc_list(swc_path, zyx=False,):
+def load_swc_list(swc_path, zyx=False, scale=None):
     '''
     load all the swc files under a folder
     :param swc_path:
@@ -23,7 +23,7 @@ def load_swc_list(swc_path, zyx=False,):
         if not swc_file.endswith(("swc", "SWC")):
             continue
         # print(os.path.join(swc_path, swc_file))
-        cur_neuron = neuron(os.path.join(swc_path, swc_file))
+        cur_neuron = neuron(os.path.join(swc_path, swc_file), scale=scale)
         if cur_neuron.pass_qc():
             neurons[cur_neuron.name] = cur_neuron
         else:
@@ -37,7 +37,7 @@ def load_swc_list(swc_path, zyx=False,):
     return neurons
 
 class neuron_set:
-    def __init__(self, swc_path=None,  zyx=False, lm_features_path = None, skip_projection=False):
+    def __init__(self, swc_path=None,  zyx=False, lm_features_path = None, skip_projection=False, scale=None):
         '''
         load all the
         :param path:
@@ -50,7 +50,7 @@ class neuron_set:
         if swc_path is None:
             return
         print("Loading...")
-        self.neurons = load_swc_list(swc_path, zyx)
+        self.neurons = load_swc_list(swc_path, zyx, scale=scale)
         self.names = list(self.neurons.keys())
         self.metadata = pd.DataFrame(index=self.names)
         print("Finding soma locations...")

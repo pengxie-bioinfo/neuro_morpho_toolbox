@@ -183,7 +183,7 @@ class projection_features(features):
 class soma_features(features):
     def __init__(self):
         features.__init__(self, "Soma")
-        self.raw_data = pd.DataFrame(columns=["x", "y", "z"])
+        self.raw_data = pd.DataFrame(columns=["x", "y", "z", "region"])
         self.region = pd.DataFrame(columns=['Hemisphere', 'Region'])
         return
 
@@ -218,7 +218,7 @@ class soma_features(features):
                                        "Region":[cur_region]},
                                       index=[cur_name])
             self.region = pd.concat([self.region, cur_region])
-        self.normalize()
+        # self.normalize()
         return
 
     def load_csv_from_path(self, path):
