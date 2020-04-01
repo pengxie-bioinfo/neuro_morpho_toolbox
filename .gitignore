@@ -11,3 +11,6 @@ neuro_morpho_toolbox/data/CCF_6_01.pickle
 
 # notebooks
 *.ipynb
+
+# Folders
+/Literature/
