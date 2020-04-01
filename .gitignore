@@ -8,3 +8,6 @@
 /*.egg-info
 neuro_morpho_toolbox/data/ccf_25.pickle
 neuro_morpho_toolbox/data/CCF_6_01.pickle
+
+# notebooks
+*.ipynb
