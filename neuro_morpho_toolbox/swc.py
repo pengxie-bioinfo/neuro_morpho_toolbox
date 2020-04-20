@@ -68,14 +68,21 @@ class neuron:
                                 index=[self.name])
             # If registered, assign soma region
             if self.registered:
-                if ((int(soma.x.iloc[0] / annotation.space['x']) >= 0) & (int(soma.x.iloc[0] / annotation.space['x']) < annotation.size['x']) &
-                    (int(soma.y.iloc[0] / annotation.space['y']) >= 0) & (int(soma.y.iloc[0] / annotation.space['y']) < annotation.size['y']) &
-                    (int(soma.z.iloc[0] / annotation.space['z']) >= 0) & (int(soma.z.iloc[0] / annotation.space['z']) < annotation.size['z'])
-                ):
-                    soma_region_id = annotation.array[int(soma.x.iloc[0] / annotation.space['x']),
-                                                      int(soma.y.iloc[0] / annotation.space['y']),
-                                                      int(soma.z.iloc[0] / annotation.space['z'])]
-                    if soma_region_id != 0:
+                soma_int = soma[['x', 'y', 'z']].copy()
+                soma_int['x'] = soma_int['x']/annotation.space['x']
+                soma_int['y'] = soma_int['y']/annotation.space['y']
+                soma_int['z'] = soma_int['z']/annotation.space['z']
+                soma_int = soma_int.round(0).astype(int)
+                if ((soma_int.x.iloc[0] >= 0) & (soma_int.x.iloc[0] < annotation.size['x']) &
+                    (soma_int.y.iloc[0] >= 0) & (soma_int.y.iloc[0] < annotation.size['y']) &
+                    (soma_int.z.iloc[0] >= 0) & (soma_int.z.iloc[0] < annotation.size['z'])
+                    ):
+                    soma_region_id = annotation.array[soma_int.x.iloc[0],
+                                                      soma_int.y.iloc[0],
+                                                      soma_int.z.iloc[0]
+                    ]
+                    if soma_region_id in list(bs.dict_to_selected.keys()):
+                        soma_region_id = bs.dict_to_selected[soma_region_id]
                         soma.loc[self.name, 'region'] = bs.id_to_name(soma_region_id)
                 if soma.loc[self.name, "z"] < (annotation.micron_size["z"] / 2):
                     self.hemi = 1
@@ -266,6 +273,7 @@ class neuron:
 
     def flip(self, axis, axis_max):
         self.swc[axis] = axis_max - self.swc[axis]
+        _ = self.get_soma()
         return
 
     def scale(self, xyz_scales, inplace=True):

@@ -28,6 +28,9 @@ def load_swc_list(swc_path, zyx=False, scale=None):
             neurons[cur_neuron.name] = cur_neuron
         else:
             print("QC failed: %s" % (swc_file))
+            continue
+        if cur_neuron.hemi == 2:
+            cur_neuron.flip(axis='z', axis_max=nmt.annotation.micron_size['z'])
         if len(neurons) % 100 == 0:
             print("%d loaded: %.1fs" % (len(neurons), time.time()-start))
             start = time.time()

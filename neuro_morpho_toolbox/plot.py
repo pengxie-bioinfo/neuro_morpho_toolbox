@@ -251,7 +251,7 @@ def plot_swc_plotly(swc_name, metadata, segment_dict={}, flip=False, z_size=None
 def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
                 view="Horizontal", linewidth = 0.7,
                 margin=0.05, dpi=80, enlarge=1.5, alpha=0.5, ax=None,
-                color="classical", flip_soma=True):
+                color="classical", flip_soma=False):
     assert view in u_views, " ".join((["option 'view_by' should be one of the following: "] + u_views))
 
     # Background image
@@ -368,21 +368,21 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
 
         # Show soma location
         if flip_soma:
-            ax.scatter(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
+            ax.plot(xsize * xspace - tp.heng[tp["Te"] == 1].iloc[0],
                        tp.zong[tp["Te"] == 1].iloc[0],
                        c=[soma_color],
                        marker="*",
-                       s=10)
+                    )
         else:
-            ax.scatter(tp.heng[tp["Te"] == 1].iloc[0],
+            ax.plot(tp.heng[tp["Te"] == 1].iloc[0],
                        tp.zong[tp["Te"] == 1].iloc[0],
-                       c=[soma_color],
+                       c='k',
                        marker="*",
-                       s=10)
+                    )
         end_sub = time.time()
         # print("Single cell's loading time: %.2f" % (end_sub - start_sub))
     end_sum = time.time()
-    print("Total loading time: %.2f" % (end_sum - start_sum))
+    # print("Total loading time: %.2f" % (end_sum - start_sum))
     return
 
 

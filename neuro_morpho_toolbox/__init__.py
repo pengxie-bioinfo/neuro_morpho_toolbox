@@ -30,6 +30,7 @@ start = time.time()
 #     # pickle.dump([annotation.array, list(annotation.space.values())], open(saved_ccf, 'wb'))
 # print(annotation.micron_size)
 annotation = image(package_path+"data/annotation_25.nrrd")
+# annotation = image(package_path+"data/annotation_25_tao.nrrd") # For Tao's testing
 # Use 25x downsampled data to improve loading efficiency. (~1s)
 # Loading 10x downsampled data takes >10s and its actually upsampled from the 25x data.
 end = time.time()
