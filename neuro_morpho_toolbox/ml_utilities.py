@@ -54,7 +54,15 @@ def PCA_wrapper(df, n_components=50):
     Z_df = pd.DataFrame(Z, index=df.index)
     return Z_df
 
-def UMAP_wrapper(df, n_neighbors=3, min_dist=0.1, n_components=2, metric='euclidean', PCA_first=True, n_PC=100):
+def UMAP_wrapper(df,
+                    n_neighbors=3,
+                    min_dist=0.1,
+                    n_components=2,
+                    metric='euclidean',
+                    PCA_first=True,
+                    n_PC=100,
+                    random_state=None,
+                   ):
     if PCA_first:
         n_PC = min([df.shape[0], n_PC, df.shape[1]])
         pca = PCA(n_components=n_PC)
@@ -63,7 +71,9 @@ def UMAP_wrapper(df, n_neighbors=3, min_dist=0.1, n_components=2, metric='euclid
     umap_reducer = umap.UMAP(n_neighbors=n_neighbors,
                              min_dist=min_dist,
                              n_components=n_components,
-                             metric=metric)
+                             metric=metric,
+                             random_state=random_state,
+                            )
     Z = umap_reducer.fit_transform(df)
     Z_df = pd.DataFrame(Z, index=df.index)
     return Z_df

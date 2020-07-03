@@ -77,6 +77,7 @@ end = time.time()
 print("Loading time: %.2f" % (end-start))
 
 from .swc import neuron
+from .arbor import arbor_neuron, arbor
 from .apo import marker
 from .neuron_features import features, projection_features, soma_features, dendrite_features, lm_dendrite_features, lm_axon_features
 from .neuron_set import neuron_set

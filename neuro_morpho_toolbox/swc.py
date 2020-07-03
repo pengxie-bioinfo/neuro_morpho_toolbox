@@ -17,6 +17,43 @@ type_dict = {"soma":1,
             }
 midline = annotation.size['z'] / 2
 
+# Functions for layer identification
+def get_dict_target(target_regions):
+    res = {}
+    for cur_region in target_regions:
+        child_ids = bs.get_all_child_id(cur_region)
+        for i in child_ids:
+            res[bs.id_to_name(i)] = cur_region
+    return res
+
+ctx_dict = get_dict_target(['CTX'])
+
+def get_layer(soma):
+    layers = ('1', '2/3', '4', '5', '6a', '6b')
+    if soma[['x', 'y', 'z']].isna().any().any():
+        return 'unknown'
+    soma_int = soma[['x', 'y', 'z']].copy()
+    soma_int['x'] = soma_int['x']/annotation.space['x']
+    soma_int['y'] = soma_int['y']/annotation.space['y']
+    soma_int['z'] = soma_int['z']/annotation.space['z']
+    soma_int = soma_int.round(0).astype(int)
+    if ((soma_int.x.iloc[0] >= 0) & (soma_int.x.iloc[0] < annotation.size['x']) &
+        (soma_int.y.iloc[0] >= 0) & (soma_int.y.iloc[0] < annotation.size['y']) &
+        (soma_int.z.iloc[0] >= 0) & (soma_int.z.iloc[0] < annotation.size['z'])
+        ):
+        soma_region_id = annotation.array[soma_int.x.iloc[0],
+                                          soma_int.y.iloc[0],
+                                          soma_int.z.iloc[0]
+        ]
+    if soma_region_id == 0:
+        return 'unknown'
+    res = bs.id_to_name(soma_region_id)
+    if not res in ctx_dict.keys():  # Only consider cortical regions regions
+        return 'unknown'
+    for i in layers:
+        if res.endswith(i):
+            return i
+    return 'unknown'
 
 class neuron:
     def __init__(self, file, zyx=False, registered=True, scale=None):
@@ -57,13 +94,15 @@ class neuron:
             self.soma = pd.DataFrame({"x": np.nan,
                                       "y": np.nan,
                                       "z": np.nan,
-                                      "region":"unknown"
+                                      "region":"unknown",
+                                      "layer":"unknown"
                                       }, index=[self.name])
         else:
             soma = pd.DataFrame({"x": soma.x.iloc[0],
                                  "y": soma.y.iloc[0],
                                  "z": soma.z.iloc[0],
-                                "region": "unknown"
+                                 "region": "unknown",
+                                 "layer": "unknown"
                                  },
                                 index=[self.name])
             # If registered, assign soma region
@@ -84,6 +123,7 @@ class neuron:
                     if soma_region_id in list(bs.dict_to_selected.keys()):
                         soma_region_id = bs.dict_to_selected[soma_region_id]
                         soma.loc[self.name, 'region'] = bs.id_to_name(soma_region_id)
+                        soma.loc[self.name, 'layer'] = get_layer(soma)
                 if soma.loc[self.name, "z"] < (annotation.micron_size["z"] / 2):
                     self.hemi = 1
                 else:
@@ -193,6 +233,14 @@ class neuron:
         # print("Time elapsed by get_region_matrix: %.2f; %s" % (time.time() - start, self.name))
         # res = res[np.sum(res[["axon", "apical dendrite", "(basal) dendrite"]], axis=1)>0]
         return res
+
+    def get_degree(self):
+        self.swc['degree'] = self.swc['parent'].isin(self.swc.index).astype('int')
+        n_child = self.swc.parent.value_counts()
+        n_child = n_child[n_child.index.isin(self.swc.index)]
+        self.swc.loc[n_child.index, 'degree'] = self.swc.loc[n_child.index, 'degree'] + n_child
+        return
+
     # def get_region_matrix(self, annotation, brain_structure, region_used=None):
     #     segment = self.get_segments()
     #

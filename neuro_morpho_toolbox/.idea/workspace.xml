@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="30a71dd5-4a88-45c7-8499-b7c19372c668" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/arbor.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/neuron_set.py" beforeDir="false" afterPath="$PROJECT_DIR$/neuron_set.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ml_utilities.py" beforeDir="false" afterPath="$PROJECT_DIR$/ml_utilities.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/plot.py" beforeDir="false" afterPath="$PROJECT_DIR$/plot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/swc.py" beforeDir="false" afterPath="$PROJECT_DIR$/swc.py" afterDir="false" />
     </list>
@@ -18,87 +19,85 @@
     <session id="-352186250">
       <usages-collector id="statistics.lifecycle.project">
         <counts>
-          <entry key="project.closed" value="15" />
+          <entry key="project.closed" value="18" />
           <entry key="project.open.time.0" value="1" />
           <entry key="project.open.time.11" value="1" />
           <entry key="project.open.time.15" value="1" />
           <entry key="project.open.time.4" value="1" />
-          <entry key="project.open.time.5" value="7" />
-          <entry key="project.open.time.6" value="5" />
+          <entry key="project.open.time.5" value="9" />
+          <entry key="project.open.time.6" value="6" />
           <entry key="project.open.time.7" value="1" />
           <entry key="project.open.time.8" value="1" />
-          <entry key="project.opened" value="18" />
+          <entry key="project.opened" value="21" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="csv" value="1" />
           <entry key="ipynb" value="1" />
-          <entry key="py" value="91" />
+          <entry key="py" value="98" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="IPNB" value="1" />
           <entry key="PLAIN_TEXT" value="1" />
-          <entry key="Python" value="91" />
+          <entry key="Python" value="98" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="Python Console" value="134" />
-          <entry key="py" value="30177" />
+          <entry key="py" value="33944" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="30311" />
+          <entry key="Python" value="34078" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/swc.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="375">
-              <caret line="304" column="12" selection-start-line="304" selection-start-column="8" selection-end-line="304" selection-end-column="12" />
+            <state relative-caret-position="-2055">
+              <caret line="58" column="14" selection-start-line="58" selection-start-column="8" selection-end-line="58" selection-end-column="14" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
-                <marker date="1587096091983" expanded="true" signature="3689:4263" ph="..." />
-                <marker date="1587096091983" expanded="true" signature="13441:13878" ph="..." />
+                <marker date="1593485767951" expanded="true" signature="5312:5886" ph="..." />
+                <marker date="1593485767951" expanded="true" signature="15397:15834" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/re-assign_nrrd.py">
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/arbor.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="189">
-              <caret line="9" column="35" selection-start-line="9" selection-start-column="35" selection-end-line="9" selection-end-column="35" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/plot.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="532">
-              <caret line="382" column="6" selection-start-line="382" selection-start-column="6" selection-end-line="382" selection-end-column="6" />
+            <state relative-caret-position="483">
+              <caret line="92" column="46" selection-start-line="92" selection-start-column="46" selection-end-line="92" selection-end-column="46" />
               <folding>
-                <element signature="e#11145#12557#0" />
+                <element signature="e#0#18#0" expanded="true" />
+                <marker date="1593740075890" expanded="true" signature="821:877" ph="..." />
+                <marker date="1593740075890" expanded="true" signature="3777:7854" ph="..." />
+                <marker date="1593740075890" expanded="true" signature="4063:5008" ph="..." />
+                <marker date="1593740075890" expanded="true" signature="5002:5003" ph="..." />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/neuron_set.py">
+        <entry file="file://$PROJECT_DIR$/flat_map.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="264">
-              <caret line="26" column="32" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
+            <state relative-caret-position="918">
+              <caret line="34" column="46" selection-start-line="34" selection-start-column="46" selection-end-line="34" selection-end-column="46" />
+              <folding>
+                <element signature="e#0#18#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -106,38 +105,35 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/ml_utilities.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-533">
-              <caret line="260" column="23" selection-start-line="260" selection-start-column="17" selection-end-line="260" selection-end-column="23" />
+            <state relative-caret-position="432">
+              <caret line="16" selection-start-line="16" selection-end-line="16" selection-end-column="27" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/neuron_features.py">
+        <entry file="file://$PROJECT_DIR$/plot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-6172">
-              <caret line="171" column="31" selection-start-line="171" selection-start-column="27" selection-end-line="171" selection-end-column="31" />
+            <state relative-caret-position="330">
+              <caret line="259" column="7" selection-start-line="259" selection-start-column="7" selection-end-line="259" selection-end-column="7" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/image.py">
+        <entry file="file://$PROJECT_DIR$/neuron_set.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="449">
-              <caret line="34" column="49" selection-start-line="34" selection-start-column="49" selection-end-line="34" selection-end-column="49" />
-              <folding>
-                <element signature="e#0#24#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="398">
+              <caret line="55" column="16" lean-forward="true" selection-start-line="55" selection-start-column="16" selection-end-line="55" selection-end-column="16" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/scale_swc.py">
+        <entry file="file://$PROJECT_DIR$/sholl_analysis.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="4050">
-              <caret line="153" column="13" selection-start-line="153" selection-start-column="13" selection-end-line="153" selection-end-column="13" />
+            <state relative-caret-position="764">
+              <caret line="55" column="65" selection-start-line="55" selection-start-column="65" selection-end-line="55" selection-end-column="65" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -146,10 +142,19 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/brain_structure.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="331">
+              <caret line="93" column="11" selection-start-line="93" selection-start-column="8" selection-end-line="93" selection-end-column="11" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/__init__.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="227">
-              <caret line="33" column="51" lean-forward="true" selection-start-line="33" selection-start-column="51" selection-end-line="33" selection-end-column="51" />
+            <state relative-caret-position="494">
+              <caret line="79" column="38" selection-start-line="79" selection-start-column="38" selection-end-line="79" selection-end-column="38" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -158,13 +163,10 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/../../../Registration/code/get_soma_region.py">
+        <entry file="file://$PROJECT_DIR$/neuron_features.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2133">
-              <caret line="84" column="13" selection-start-line="84" selection-start-column="13" selection-end-line="84" selection-end-column="13" />
-              <folding>
-                <element signature="e#0#18#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="207">
+              <caret line="331" column="22" selection-start-line="331" selection-start-column="13" selection-end-line="331" selection-end-column="22" />
             </state>
           </provider>
         </entry>
@@ -181,21 +183,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>path</find>
-      <find>get_soma</find>
-      <find>id_to</find>
-      <find>swc</find>
-      <find>apo</find>
-      <find>swc_to_e</find>
-      <find>def swc_to_edges</find>
-      <find>map</find>
-      <find>scae</find>
-      <find>load_data</find>
-      <find>concat</find>
-      <find>segment</find>
-      <find>selected</find>
-      <find>output_swc</find>
-      <find>region</find>
       <find>get_segments</find>
       <find>boundary</find>
       <find>reverse</find>
@@ -211,6 +198,21 @@
       <find>def get</find>
       <find>qc failed</find>
       <find>cluster_color_dict</find>
+      <find>save</find>
+      <find>scatte</find>
+      <find>UMAP_wrapper</find>
+      <find>swc_to</find>
+      <find>pd.concat</find>
+      <find>normalize</find>
+      <find>soma</find>
+      <find>child</find>
+      <find>arbor</find>
+      <find>degree</find>
+      <find>cell_in</find>
+      <find>n_skip</find>
+      <find>region</find>
+      <find>__init</find>
+      <find>id_</find>
     </findStrings>
     <replaceStrings>
       <replace>_marker</replace>
@@ -238,7 +240,6 @@
         <option value="$PROJECT_DIR$/../../../Registration/code/restore_coord.py" />
         <option value="$PROJECT_DIR$/color_code.py" />
         <option value="$PROJECT_DIR$/../../../Registration/code/get_soma_region.py" />
-        <option value="$PROJECT_DIR$/ml_utilities.py" />
         <option value="$PROJECT_DIR$/../../../Tip_analysis/python/tip_label_widget/tip_label_widget.py" />
         <option value="$PROJECT_DIR$/sholl_analysis.py" />
         <option value="$PROJECT_DIR$/../../scale_swc/scale_swc.py" />
@@ -248,15 +249,18 @@
         <option value="$PROJECT_DIR$/shift_swc.py" />
         <option value="$PROJECT_DIR$/apo.py" />
         <option value="$PROJECT_DIR$/flat_map.py" />
-        <option value="$PROJECT_DIR$/swc.py" />
         <option value="$PROJECT_DIR$/neuron_set.py" />
+        <option value="$PROJECT_DIR$/ml_utilities.py" />
         <option value="$PROJECT_DIR$/plot.py" />
+        <option value="$PROJECT_DIR$/swc.py" />
         <option value="$PROJECT_DIR$/__init__.py" />
+        <option value="$PROJECT_DIR$/arbor.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="6">
-    <option name="y" value="413" />
+  <component name="ProjectFrameBounds">
+    <option name="x" value="-18" />
+    <option name="y" value="30" />
     <option name="width" value="1680" />
     <option name="height" value="969" />
   </component>
@@ -266,6 +270,7 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
+      <pane id="Scope" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -277,7 +282,6 @@
           <select />
         </subPane>
       </pane>
-      <pane id="Scope" />
     </panes>
   </component>
   <component name="PropertiesComponent">
@@ -375,7 +379,7 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="0" y="23" width="1680" height="969" extended-state="6" />
+    <frame x="-18" y="30" width="1680" height="969" extended-state="0" />
     <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" visible="true" weight="0.25256178" />
@@ -389,7 +393,7 @@
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
       <window_info anchor="bottom" id="TODO" order="6" weight="0.32992035" />
       <window_info anchor="bottom" id="Version Control" order="7" weight="0.32992035" />
-      <window_info anchor="bottom" id="Terminal" order="8" visible="true" weight="0.18129988" />
+      <window_info anchor="bottom" id="Terminal" order="8" weight="0.1927024" />
       <window_info anchor="bottom" id="Event Log" order="9" side_tool="true" />
       <window_info anchor="bottom" id="Python Console" order="10" weight="0.32992035" />
       <window_info anchor="right" id="Commander" internal_type="SLIDING" order="0" type="SLIDING" weight="0.4" />
@@ -499,13 +503,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/brain_structure.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-16">
-          <caret line="88" column="11" selection-start-line="88" selection-start-column="11" selection-end-line="88" selection-end-column="11" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/utilities.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="405">
@@ -516,33 +513,26 @@
     <entry file="file://$PROJECT_DIR$/sholl.csv">
       <provider selected="true" editor-type-id="text-editor" />
     </entry>
-    <entry file="file://$PROJECT_DIR$/flat_map.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="7938">
-          <caret line="307" column="11" selection-start-line="307" selection-end-line="307" selection-end-column="11" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/sholl_analysis.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3186">
-          <caret line="121" column="28" selection-start-line="121" selection-start-column="28" selection-end-line="121" selection-end-column="28" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/apo.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="270">
           <caret line="19" column="93" selection-start-line="19" selection-start-column="93" selection-end-line="19" selection-end-column="93" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/re-assign_nrrd.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="189">
+          <caret line="9" column="35" selection-start-line="9" selection-start-column="35" selection-end-line="9" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/image.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="810">
+          <caret line="34" column="49" selection-start-line="34" selection-start-column="49" selection-end-line="34" selection-end-column="49" />
           <folding>
-            <element signature="e#0#18#0" expanded="true" />
-            <marker date="1583034428840" expanded="true" signature="2100:2102" ph="..." />
+            <element signature="e#0#24#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -567,58 +557,58 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/re-assign_nrrd.py">
+    <entry file="file://$PROJECT_DIR$/neuron_features.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="189">
-          <caret line="9" column="35" selection-start-line="9" selection-start-column="35" selection-end-line="9" selection-end-column="35" />
+        <state relative-caret-position="207">
+          <caret line="331" column="22" selection-start-line="331" selection-start-column="13" selection-end-line="331" selection-end-column="22" />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/image.py">
+    <entry file="file://$PROJECT_DIR$/sholl_analysis.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="449">
-          <caret line="34" column="49" selection-start-line="34" selection-start-column="49" selection-end-line="34" selection-end-column="49" />
+        <state relative-caret-position="764">
+          <caret line="55" column="65" selection-start-line="55" selection-start-column="65" selection-end-line="55" selection-end-column="65" />
           <folding>
-            <element signature="e#0#24#0" expanded="true" />
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/neuron_features.py">
+    <entry file="file://$PROJECT_DIR$/flat_map.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-6172">
-          <caret line="171" column="31" selection-start-line="171" selection-start-column="27" selection-end-line="171" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/ml_utilities.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-533">
-          <caret line="260" column="23" selection-start-line="260" selection-start-column="17" selection-end-line="260" selection-end-column="23" />
+        <state relative-caret-position="918">
+          <caret line="34" column="46" selection-start-line="34" selection-start-column="46" selection-end-line="34" selection-end-column="46" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/neuron_set.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="264">
-          <caret line="26" column="32" selection-start-line="26" selection-start-column="32" selection-end-line="26" selection-end-column="32" />
+        <state relative-caret-position="398">
+          <caret line="55" column="16" lean-forward="true" selection-start-line="55" selection-start-column="16" selection-end-line="55" selection-end-column="16" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/plot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="532">
-          <caret line="382" column="6" selection-start-line="382" selection-start-column="6" selection-end-line="382" selection-end-column="6" />
-          <folding>
-            <element signature="e#11145#12557#0" />
-          </folding>
+        <state relative-caret-position="330">
+          <caret line="259" column="7" selection-start-line="259" selection-start-column="7" selection-end-line="259" selection-end-column="7" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/ml_utilities.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="432">
+          <caret line="16" selection-start-line="16" selection-end-line="16" selection-end-column="27" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/__init__.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="227">
-          <caret line="33" column="51" lean-forward="true" selection-start-line="33" selection-start-column="51" selection-end-line="33" selection-end-column="51" />
+        <state relative-caret-position="494">
+          <caret line="79" column="38" selection-start-line="79" selection-start-column="38" selection-end-line="79" selection-end-column="38" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
           </folding>
@@ -627,12 +617,33 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/swc.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="375">
-          <caret line="304" column="12" selection-start-line="304" selection-start-column="8" selection-end-line="304" selection-end-column="12" />
+        <state relative-caret-position="-2055">
+          <caret line="58" column="14" selection-start-line="58" selection-start-column="8" selection-end-line="58" selection-end-column="14" />
           <folding>
             <element signature="e#0#18#0" expanded="true" />
-            <marker date="1587096091983" expanded="true" signature="3689:4263" ph="..." />
-            <marker date="1587096091983" expanded="true" signature="13441:13878" ph="..." />
+            <marker date="1593485767951" expanded="true" signature="5312:5886" ph="..." />
+            <marker date="1593485767951" expanded="true" signature="15397:15834" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/brain_structure.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="331">
+          <caret line="93" column="11" selection-start-line="93" selection-start-column="8" selection-end-line="93" selection-end-column="11" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/arbor.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="483">
+          <caret line="92" column="46" selection-start-line="92" selection-start-column="46" selection-end-line="92" selection-end-column="46" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
+            <marker date="1593740075890" expanded="true" signature="821:877" ph="..." />
+            <marker date="1593740075890" expanded="true" signature="3777:7854" ph="..." />
+            <marker date="1593740075890" expanded="true" signature="4063:5008" ph="..." />
+            <marker date="1593740075890" expanded="true" signature="5002:5003" ph="..." />
           </folding>
         </state>
       </provider>

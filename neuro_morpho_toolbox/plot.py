@@ -345,6 +345,7 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
             flip_soma = False
 
         if color.lower() == "classical":
+            ax.plot(tp.heng[tp.Te == 1], tp.zong[tp.Te == 1], c='k', linewidth=linewidth, alpha=alpha)
             ax.plot(tp.heng[tp.Te == 2], tp.zong[tp.Te == 2], c='r', linewidth=linewidth, alpha=alpha)
             ax.plot(tp.heng[tp.Te == 3], tp.zong[tp.Te == 3], c='b', linewidth=linewidth, alpha=alpha)
             ax.plot(tp.heng[tp.Te == 4], tp.zong[tp.Te == 4], c='magenta', linewidth=linewidth, alpha=alpha)
@@ -386,10 +387,9 @@ def cell_in_map(neurons_dict, cell_list, metadata, ccf_annotation,
     return
 
 
-def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5):
-    max_col = 3
-    subplot_w = 6
-    subplot_h = 6
+def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5,
+                         subplot_w=6, subplot_h=6, max_col=3
+                         ):
     feature_list = c.columns.tolist()
     subplot_n = len(feature_list)
     if subplot_n <= max_col:
@@ -429,10 +429,8 @@ def quantitative_scatter(x, y, c, cmap='bwr', alpha=0.75, s=5):
     return fig
 
 
-def qualitative_scatter(x, y, c, palette='Spectral', max_colors=25):
-    max_col = 3
-    subplot_w = 8
-    subplot_h = 8
+def qualitative_scatter(x, y, c, palette='Spectral', max_colors=25,
+                        subplot_w=6, subplot_h=6, max_col=3):
     feature_list = c.columns.tolist()
     subplot_n = len(feature_list)
     if subplot_n <= max_col:
