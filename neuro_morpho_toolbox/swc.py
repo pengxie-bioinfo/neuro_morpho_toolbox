@@ -3,8 +3,8 @@ import pandas as pd
 
 from .utilities import cart2pol_3d
 from .brain_structure import *
-from neuro_morpho_toolbox import annotation
-from neuro_morpho_toolbox import bs
+from neuro_morpho_toolbox import annotation, bs
+from neuro_morpho_toolbox import cortex_layer_array, layer_dict
 
 # For testing purpose
 import time
@@ -232,6 +232,25 @@ class neuron:
             res = pd.concat([res, cur_df], axis=0)
         # print("Time elapsed by get_region_matrix: %.2f; %s" % (time.time() - start, self.name))
         # res = res[np.sum(res[["axon", "apical dendrite", "(basal) dendrite"]], axis=1)>0]
+        return res
+
+    def get_layer_matrix(self):
+        df = self.get_segments()
+        df['x'] = (df['x'] / annotation.space['x']).astype('int')
+        df['y'] = (df['y'] / annotation.space['y']).astype('int')
+        df['z'] = (df['z'] / annotation.space['z']).astype('int')
+        df = df[((df.x >= 0) & (df.x < annotation.size['x']) &
+                 (df.y >= 0) & (df.y < annotation.size['y']) &
+                 (df.z >= 0) & (df.z < annotation.size['z'])
+                )]
+        custom_layer_dict = layer_dict
+        custom_layer_dict[0] = 'Non-cortical'
+        df['layer'] = cortex_layer_array[df.x, df.y, df.z]
+        df['layer'] = df['layer'].map(custom_layer_dict)
+        res = pd.DataFrame(index=[self.name], columns=['L1', 'L2/3', 'L4', 'L5', 'L6a', 'L6b', 'Non-cortical'])
+        for i in res.columns.tolist():
+            res.loc[self.name, i] = df.loc[df['layer']==i, 'rho'].sum()
+        res = res.round(1)
         return res
 
     def get_degree(self):

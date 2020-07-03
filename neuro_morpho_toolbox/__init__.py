@@ -55,6 +55,10 @@ start = time.time()
 print("Loading flat_map ...")
 from .flat_map import slice, slice_set
 
+saved_layer = package_path+"data/cortical_layer_array.pickle"
+[cortex_layer_array] = pickle.load(open(saved_layer, 'rb'))
+layer_list = ['L1', 'L2/3', 'L4', 'L5', 'L6a', 'L6b']
+layer_dict = dict(zip([1,2,3,4,5,6], layer_list))
 
 saved_contour = package_path+"data/CCF_6_01.pickle"
 if os.path.exists(saved_contour):

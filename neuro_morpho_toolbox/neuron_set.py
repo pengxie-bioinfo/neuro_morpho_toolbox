@@ -75,8 +75,17 @@ class neuron_set:
         self.metadata['Hemisphere'] = [hemi_dict[i] for i in self.features['soma_features'].region.loc[self.names, 'Hemisphere'].tolist()]
         self.metadata['CellType'] = self.features['soma_features'].region.loc[self.names, 'Region'] # Initialized as SomaRegion
         self.metadata['Cluster'] = [0]*len(self.metadata)
+        return
 
-        # Zuohan, please complete this: if lm_features_path is not None: load lm features...
+    def get_layer_matrix(self):
+        res = None
+        for cname in self.names:
+            cn = self.neurons[cname]
+            if res is None:
+                res = cn.get_layer_matrix()
+            else:
+                res = pd.concat([res, cn.get_layer_matrix()], axis=0)
+        self.layer_matrix = res
         return
     
     def ReduceDimPCA(self, feature_set='projection_features'):
@@ -101,10 +110,11 @@ class neuron_set:
         return self.UMAP
 
     def get_clusters(self,
-                    method='SNN_community',
+                     method='SNN_community',
                     karg_dict={'knn':5,
-                                'metric':'minkowski',
-                                'method':'FastGreedy'},neuron_list = []):
+                               'metric':'minkowski',
+                               'method':'FastGreedy'},
+                     neuron_list = []):
                     #hier_dict={'L_method':'single',
                         #'L_metric':'euclidean',
                         #'criterionH':'inconsistent',
