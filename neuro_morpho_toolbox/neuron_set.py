@@ -77,14 +77,14 @@ class neuron_set:
         self.metadata['Cluster'] = [0]*len(self.metadata)
         return
 
-    def get_layer_matrix(self):
+    def get_layer_matrix(self, use_type=[1,2,3,4]):
         res = None
         for cname in self.names:
             cn = self.neurons[cname]
             if res is None:
-                res = cn.get_layer_matrix()
+                res = cn.get_layer_matrix(use_type)
             else:
-                res = pd.concat([res, cn.get_layer_matrix()], axis=0)
+                res = pd.concat([res, cn.get_layer_matrix(use_type)], axis=0)
         self.layer_matrix = res
         return
     

@@ -177,7 +177,6 @@ class neuron:
     def get_region_matrix(self, annotation, brain_structure, region_used=None):
         start = time.time()
         segment = self.get_segments()
-
         tp = pd.DataFrame({"x": np.array(np.array(segment.x) / annotation.space['x'], dtype="int32"),
                            "y": np.array(np.array(segment.y) / annotation.space['y'], dtype="int32"),
                            "z": np.array(np.array(segment.z) / annotation.space['z'], dtype="int32"),
@@ -234,8 +233,9 @@ class neuron:
         # res = res[np.sum(res[["axon", "apical dendrite", "(basal) dendrite"]], axis=1)>0]
         return res
 
-    def get_layer_matrix(self):
+    def get_layer_matrix(self, use_type=[1,2,3,4]):
         df = self.get_segments()
+        df = df[df.type.isin(use_type)]
         df['x'] = (df['x'] / annotation.space['x']).astype('int')
         df['y'] = (df['y'] / annotation.space['y']).astype('int')
         df['z'] = (df['z'] / annotation.space['z']).astype('int')
