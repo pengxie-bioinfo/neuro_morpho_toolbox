@@ -30,7 +30,7 @@ start = time.time()
 #     # pickle.dump([annotation.array, list(annotation.space.values())], open(saved_ccf, 'wb'))
 # print(annotation.micron_size)
 annotation = image(package_path+"data/annotation_25.nrrd")
-# annotation = image(package_path+"data/annotation_25_tao.nrrd") # For Tao's testing
+# annotation = image(package_path+"data/annotation_25_tao.nrrd") # For Tao's testing 
 # Use 25x downsampled data to improve loading efficiency. (~1s)
 # Loading 10x downsampled data takes >10s and its actually upsampled from the 25x data.
 end = time.time()
@@ -52,13 +52,10 @@ print("Loading time: %.2f" % (end-start))
 print("Loading selected CCF Atlas and Contour data...")
 start = time.time()
 
-print("Loading flat_map ...")
-from .flat_map import slice, slice_set
+# print("Loading flat_map ...")
+# from .flat_map import slice, slice_set
+# [ss] = pickle.load(open('/Users/pengxie/Documents/Research/Thalamus_fullMorpho/ipython/slice_set_100_test.pickle', 'rb'))
 
-saved_layer = package_path+"data/cortical_layer_array.pickle"
-[cortex_layer_array] = pickle.load(open(saved_layer, 'rb'))
-layer_list = ['L1', 'L2/3', 'L4', 'L5', 'L6a', 'L6b']
-layer_dict = dict(zip([1,2,3,4,5,6], layer_list))
 
 saved_contour = package_path+"data/CCF_6_01.pickle"
 if os.path.exists(saved_contour):
@@ -77,11 +74,42 @@ else:
         for i_child in bs.get_all_child_id(iterID):
             ccfArray[ccfArray == int(i_child)] = iterID
     pickle.dump([ccfArray], open(saved_ccf25, 'wb'))
+
+saved_layer = package_path+"data/cortical_layer_array.pickle"
+if not os.path.exists(saved_layer):
+    cdict = {}
+    tp = list(np.unique(annotation.array))
+    for i in tp:
+        cdict[i] = 0
+
+    layer_list = ['1', '2', '2/3', '4', '5', '6a', '6b']
+    layer_dict = {'1': 1,
+                  '2': 2,
+                  '2/3': 2,
+                  '4': 3,
+                  '5': 4,
+                  '6a': 5,
+                  '6b': 6
+                  }
+    cortical_regions = [bs.id_to_name(i) for i in bs.get_all_child_id('Isocortex')]
+    for i in cortical_regions:
+        for clayer in layer_list:
+            if i.endswith(clayer):
+                cdict[bs.name_to_id(i)] = layer_dict[clayer]
+                continue
+
+    cortex_layer_array = annotation.array.copy()
+    cortex_layer_array = np.vectorize(cdict.get)(cortex_layer_array)
+    pickle.dump([cortex_layer_array], open(saved_layer, 'wb'))
+else:
+    [cortex_layer_array] = pickle.load(open(saved_layer, 'rb'))
+layer_list = ['L1', 'L2/3', 'L4', 'L5', 'L6a', 'L6b']
+layer_dict = dict(zip([1,2,3,4,5,6], layer_list))
 end = time.time()
 print("Loading time: %.2f" % (end-start))
 
 from .swc import neuron
-from .arbor import arbor_neuron, arbor
+# from .arbor import arbor_neuron, arbor
 from .apo import marker
 from .neuron_features import features, projection_features, soma_features, dendrite_features, lm_dendrite_features, lm_axon_features
 from .neuron_set import neuron_set
