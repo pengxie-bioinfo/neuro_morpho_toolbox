@@ -1,4 +1,4 @@
-neuro_morpho_toolbox, also named 'mBrainAligner', is designed for the analysis of single-cell full morphology reconstruction data, including:
+neuro_morpho_toolbox, also named 'mBrainAnalyzer', is designed for the analysis of single-cell full morphology reconstruction data, including:
 
 1. Quantification of projection strength.
 
